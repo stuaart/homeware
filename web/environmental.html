@@ -1,0 +1,160 @@
+<!DOCTYPE HTML>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<title>Homeware</title>
+
+		<script type="text/javascript" src="lib/jquery.min.js"></script>
+		<style type="text/css">
+${demo.css}
+		</style>
+		<script type="text/javascript">
+$(function () {
+
+	pir_data = [];
+
+	env_data_temp1w = [];
+	env_data_bmp085_temp = [];
+	env_data_bmp085_pres = [];
+
+	$.getJSON("pir_data.json", 
+		function(data)
+		{
+			for (i in data.pir_data) 
+			{
+				pir_data.push(
+					[new Date(data.pir_data[i][2]).getTime(),
+							  parseInt(data.pir_data[i][1])]
+				);
+			}
+
+			makeChart();
+		});
+
+	$.getJSON("env_data.json", 
+		function(data_)
+		{
+
+			data = data_.env_data
+
+			for (i in data.env_data_temp1w) 
+			{
+				env_data_temp1w.push(
+					[new Date(data.env_data_temp1w[i][2]).getTime(),
+							  parseFloat(data.env_data_temp1w[i][1])]
+				);
+			}
+			for (i in data.env_data_bmp085_temp) 
+			{
+				env_data_bmp085_temp.push(
+					[new Date(data.env_data_bmp085_temp[i][2]).getTime(),
+							  parseFloat(data.env_data_bmp085_temp[i][1])]
+				);
+			}
+			for (i in data.env_data_bmp085_pres) 
+			{
+				env_data_bmp085_pres.push(
+					[new Date(data.env_data_bmp085_pres[i][2]).getTime(),
+							  parseFloat(data.env_data_bmp085_pres[i][1] / 1000)]
+				);
+			}
+
+			makeChart();
+		});
+
+	function makeChart()
+	{	
+
+		$('#container').highcharts({
+			chart: {
+				zoomtype: 'xy'
+			},
+			title: {
+				text: 'Environmental sensor data'
+			},
+			xAxis: [{
+				type: 'datetime',
+				title: {
+					text: 'Date'
+				}
+			}],
+			yAxis: [{
+				labels: {
+					format: '{value}°C'
+				},
+				title: {
+					text: 'Temperature'
+				},
+				opposite: true
+			}, {
+				title: {
+					text: 'Pressure'
+				},
+				labels: {
+					format: '{value} mb'
+				}
+			},
+			{
+				title: {
+					text: 'PIR state'
+				},
+				categories: [0, 1]
+			}],
+       		/*legend: {
+        		layout: 'vertical',
+        		align: 'left',
+        		x: 120,
+		        verticalAlign: 'top',
+		        y: 100,
+		        floating: true,
+		    	backgroundColor: (Highcharts.theme && Highcharts.theme.legendBackgroundColor) || '#FFFFFF'
+		    },*/
+			series: [{
+				name: 'Temperature (1W)',
+				data: env_data_temp1w,
+				type: 'spline',
+				tooltip: {
+					valueSuffix: '°C'
+				},
+				yAxis: 0
+			},
+			{
+				name: 'Temperature (BMP085)',
+				data: env_data_bmp085_temp,
+				type: 'spline',
+				tooltip: {
+					valueSuffix: '°C'
+				},
+				yAxis: 0
+			},
+			{
+				name: 'Pressure',
+				data: env_data_bmp085_pres,
+				yAxis: 1,
+				type: 'spline',
+				tooltip: {
+					valueSuffix: ' mb'
+				}
+			},
+			{
+				name: 'PIR state',
+				data: pir_data,
+				yAxis: 2,
+				type: 'column'
+			}]
+		
+		});
+	}
+
+});
+
+		</script>
+	</head>
+	<body>
+<script src="lib/highcharts.js"></script>
+<script src="lib/exporting.js"></script>
+
+<div id="container" style="min-width: 310px; height: 400px; margin: 0 auto"></div>
+
+	</body>
+</html>
