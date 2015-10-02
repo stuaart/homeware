@@ -1,1 +1,6 @@
-Ensure that quit signal sends final update to database before close.
+TODO
+====
+
+1. Ensure that quit signal sends final update to database before close.
+
+2. Config file
