@@ -77,18 +77,18 @@ class DBManager(threading.Thread):
 		self.con.close()
 
 	def setup(self):
-		self.qq.put(("create table pir_data(state bool, time timestamp)",))
-		self.qq.put(("create table env_data_temp1w(temp real, time timestamp)",))
-		self.qq.put(("create table env_data_bmp085(temp real, pres real, time timestamp)",))
+		self.qq.put(("create table pir_data(time timestamp, score real, period real)",))
+		self.qq.put(("create table env_data_temp1w(time timestamp, temp real)",))
+		self.qq.put(("create table env_data_bmp085(time timestamp, temp real, pres real)",))
 
 	def insertEnvData(self, envData):
-		self.qq.put(("insert into env_data_temp1w(temp, time) values (?, ?)", (envData.getTemp1W()['temp'], envData.getTemp1W()['time'])))
-		self.qq.put(("insert into env_data_bmp085(temp, pres, time) values (?, ?, ?)", (envData.getBMP085()['temp'], envData.getBMP085()['pres'], envData.getBMP085()['time'])))
+		self.qq.put(("insert into env_data_temp1w(time, temp) values (?, ?)", (envData.getTemp1W()['time'], envData.getTemp1W()['temp'])))
+		self.qq.put(("insert into env_data_bmp085(time, temp, pres) values (?, ?, ?)", (envData.getBMP085()['time'], envData.getBMP085()['temp'], envData.getBMP085()['pres'])))
 
 
 
 	def insertPIRData(self, pirData):
-		self.qq.put(("insert into pir_data(state, time) values (?, ?)", (pirData.getCurrState()['state'], pirData.getCurrState()['time'])))
+		self.qq.put(("insert into pir_data(time, score, period) values (?, ?, ?)", (pirData.getCurrScore()['time'], pirData.getCurrScore()['score'], pirData.getAccumPeriod())))
 
 
 	def purge(self): 
