@@ -17,8 +17,8 @@ def get(table, posTime, yAxis):
 	return o
 
 t1 = get("env_data_temp1w", 0, 1)
-t2 = get("env_data_bmp085", 0, 2)
-t3 = get("env_data_bmp085", 1, 2)
+t2 = get("env_data_bmp085", 0, 1)
+t3 = get("env_data_bmp085", 0, 2)
 t4 = get("pir_data", 0, 1)
 
 env_data = {'env_data' : {'env_data_temp1w' : t1, 'env_data_bmp085_temp' : t2, 'env_data_bmp085_pres' : t3}}
