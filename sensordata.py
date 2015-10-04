@@ -5,25 +5,26 @@ class PIRData:
 	prevState = None
 	currState = None
 	
-	currScore = 0
+	currScore = None
 	accumPeriod = 5 # Accumulate score in 5 minute buckets
-	startTime = 0
 
 	def __init__(self, accumPeriod=5, startTime=datetime.datetime.now()):
 		self.prevState = {'state' : False, 'time' : None}
 		self.currState = {'state' : False, 'time' : None}
-		self.currScore = 0
+		self.currScore = {'score' : 0, 'start' : startTime, 
+					       'end' : startTime + datetime.timedelta(minutes=accumPeriod)}
 		self.accumPeriod = accumPeriod
 
 	def setState(self, s, t):
 		self.prevState = self.currState
 		self.currState['state'] = s
 		self.currState['time'] = t
-		if startTime < t - datetime.timedelta(minutes=accumPeriod):
+		if self.currScore['end'] > t:
 			if s: 
-				self.currScore += 1
+				self.currScore['score'] += 1
 		else:
-			startTime = t
+			self.currScore['start'] = t
+			self.currScore['end'] = t + datetime.timedelta(minutes=self.accumPeriod)
 
 	def getCurrState(self):
 		return self.currState
@@ -33,6 +34,9 @@ class PIRData:
 
 	def getCurrScore(self):
 		return self.currScore
+
+	def getAccumPeriod(self):
+		return self.accumPeriod
 
 
 class EnvData:
