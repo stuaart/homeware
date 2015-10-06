@@ -66,6 +66,9 @@ $(function () {
 	{	
 
 		$('#container').highcharts({
+			global: {
+				useUTC: false
+			},
 			chart: {
 				zoomtype: 'xy'
 			},
@@ -98,6 +101,7 @@ $(function () {
 				title: {
 					text: 'PIR state'
 				},
+				type: 'logarithmic'
 			}],
        		/*legend: {
         		layout: 'vertical',

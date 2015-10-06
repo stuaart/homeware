@@ -19,8 +19,8 @@ killEvent.clear()
 lm = leds.LEDManager(pins)
 
 threads = {}
-threads['dbm'] = db.DBManager(killEvent, len(threads), screen, wait=600) # 10 minutes
-threads['ssm'] = sensors.SensorsManager(killEvent, len(threads), pins, lm, threads['dbm'], screen, wait=1800) # 30 minutes
+threads['dbm'] = db.DBManager(killEvent, len(threads), screen, wait=600) # DB commit every 10 minutes
+threads['ssm'] = sensors.SensorsManager(killEvent, len(threads), pins, lm, threads['dbm'], screen, wait=1800) # Updated readings every 30 minutes for sensors not on callback
 
 threads['dbm'].start()
 threads['ssm'].start()

@@ -147,12 +147,10 @@ class SensorsManager(threading.Thread):
 				print "Error on PIR callback, channel = " + str(channel)
 			return
 
-		self.pirData.setState(GPIO.input(self.pins['pir']), 
-							  datetime.datetime.now())
-
 		if self.dbManager is not None:
-			self.dbManager.insertPIRData(self.pirData)
-	
+			self.pirData.setState(self.dbManager, GPIO.input(self.pins['pir']), 
+								  datetime.datetime.now())
+
 		if self.screen:
 			self.screen.updateEntry(pirData=self.pirData)
 

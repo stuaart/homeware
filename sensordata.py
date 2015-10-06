@@ -6,16 +6,16 @@ class PIRData:
 	currState = None
 	
 	currScore = None
-	accumPeriod = 5 # Accumulate score in 5 minute buckets
+	accumPeriod = 15 # Accumulate score in 15 minute buckets
 
-	def __init__(self, accumPeriod=5, startTime=datetime.datetime.now()):
+	def __init__(self, accumPeriod=15, startTime=datetime.datetime.now()):
 		self.prevState = {'state' : False, 'time' : None}
 		self.currState = {'state' : False, 'time' : None}
 		self.currScore = {'score' : 0, 'start' : startTime, 
 					       'end' : startTime + datetime.timedelta(minutes=accumPeriod)}
 		self.accumPeriod = accumPeriod
 
-	def setState(self, s, t):
+	def setState(self, dbManager, s, t):
 		self.prevState = self.currState
 		self.currState['state'] = s
 		self.currState['time'] = t
@@ -25,6 +25,7 @@ class PIRData:
 		else:
 			self.currScore['start'] = t
 			self.currScore['end'] = t + datetime.timedelta(minutes=self.accumPeriod)
+			dbManager.insertPIRData(self)
 
 	def getCurrState(self):
 		return self.currState
