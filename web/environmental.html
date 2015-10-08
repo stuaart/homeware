@@ -67,11 +67,12 @@ $(function () {
 
 		$('#container').highcharts({
 			global: {
-            	timezoneOffset: 1 * 60
+            	timezoneOffset: 1 * 60,
+				/* useUTC: false */
 			},
 			scrollbar: {
 	            enabled: true
-	        },
+			},
 			chart: {
 				zoomType: 'x'
 			},
