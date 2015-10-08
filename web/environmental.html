@@ -65,11 +65,13 @@ $(function () {
 	function makeChart()
 	{	
 
+	   Highcharts.setOptions({
+    	    global: {
+				timezoneOffset: 1 * 60,
+	            useUTC: false
+    	    }
+	    });
 		$('#container').highcharts({
-			global: {
-            	timezoneOffset: 1 * 60,
-				/* useUTC: false */
-			},
 			scrollbar: {
 	            enabled: true
 			},
@@ -173,6 +175,22 @@ $(function () {
 <script src="lib/exporting.js"></script>
 
 <div id="container" style="min-width: 310px; height: 400px; margin: 0 auto"></div>
+
+<div> 
+CSV:
+<ul><li><a href="env_data_bmp085.csv">env_data_bmp085.csv</a>
+<li><a href="env_data_pir.csv">env_data_pir.csv</a>
+<li><a href="env_data_temp1w.csv">env_data_temp1w.csv</a>
+</ul>
+</div>
+
+<div>
+LATEST:
+<ul><li>Motion
+<li>Temperature
+<li>Pressure
+</ul>
+</div>
 
 	</body>
 </html>
