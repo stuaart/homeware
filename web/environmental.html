@@ -55,7 +55,7 @@ $(function () {
 			{
 				env_data_bmp085_pres.push(
 					[new Date(data.env_data_bmp085_pres[i][2]).getTime(),
-							  parseFloat(data.env_data_bmp085_pres[i][1] / 1000)]
+							  parseFloat(data.env_data_bmp085_pres[i][1] / 100)]
 				);
 			}
 
@@ -66,8 +66,14 @@ $(function () {
 	{	
 
 		$('#container').highcharts({
+			global: {
+            	timezoneOffset: 1 * 60
+			},
+			scrollbar: {
+	            enabled: true
+	        },
 			chart: {
-				zoomtype: 'xy'
+				zoomType: 'x'
 			},
 			title: {
 				text: 'Environmental sensor data'
@@ -76,7 +82,7 @@ $(function () {
 				type: 'datetime',
 				title: {
 					text: 'Date'
-				}
+				},
 			}],
 			yAxis: [{
 				labels: {
@@ -96,22 +102,17 @@ $(function () {
 			},
 			{
 				title: {
-					text: 'PIR state'
+					text: 'PIR score'
 				},
+				type: 'logarithmic',
+                max: 9999,
+				min: 1
 			}],
-       		/*legend: {
-        		layout: 'vertical',
-        		align: 'left',
-        		x: 120,
-		        verticalAlign: 'top',
-		        y: 100,
-		        floating: true,
-		    	backgroundColor: (Highcharts.theme && Highcharts.theme.legendBackgroundColor) || '#FFFFFF'
-		    },*/
 			series: [{
 				name: 'Temperature (1W)',
 				data: env_data_temp1w,
 				type: 'spline',
+				visible: false,
 				tooltip: {
 					valueSuffix: '°C'
 				},
@@ -125,7 +126,7 @@ $(function () {
 					valueSuffix: '°C'
 				},
 				yAxis: 0
-			},
+			},	
 			{
 				name: 'Pressure',
 				data: env_data_bmp085_pres,
@@ -133,14 +134,31 @@ $(function () {
 				type: 'spline',
 				tooltip: {
 					valueSuffix: ' mb'
-				}
+				},
 			},
 			{
-				name: 'PIR state',
+				name: 'PIR score',
 				data: pir_data,
 				yAxis: 2,
-				type: 'column'
-			}]
+				type: 'column',
+				pointRange: 5 * 60 * 1000
+		    }],
+
+			scrollbar: {
+                enabled: true,
+                barBackgroundColor: 'gray',
+                barBorderRadius: 7,
+                barBorderWidth: 0,
+                buttonBackgroundColor: 'gray',
+                buttonBorderWidth: 0,
+                buttonArrowColor: 'yellow',
+                buttonBorderRadius: 7,
+                rifleColor: 'yellow',
+                trackBackgroundColor: 'white',
+                trackBorderWidth: 1,
+                trackBorderColor: 'silver',
+                trackBorderRadius: 7
+            }
 		
 		});
 	}
