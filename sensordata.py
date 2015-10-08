@@ -6,9 +6,9 @@ class PIRData:
 	currState = None
 	
 	currScore = None
-	accumPeriod = 15 # Accumulate score in 15 minute buckets
+	accumPeriod = 5 # Accumulate score in 5 minute buckets
 
-	def __init__(self, accumPeriod=15, startTime=datetime.datetime.now()):
+	def __init__(self, accumPeriod=5, startTime=datetime.datetime.now()):
 		self.prevState = {'state' : False, 'time' : None}
 		self.currState = {'state' : False, 'time' : None}
 		self.currScore = {'score' : 0, 'start' : startTime, 
