@@ -88,7 +88,7 @@ class DBManager(threading.Thread):
 
 
 	def insertPIRData(self, pirData):
-		self.qq.put(("insert into pir_data(time, score, period) values (?, ?, ?)", (pirData.getCurrScore()['end'], pirData.getCurrScore()['score'], pirData.getAccumPeriod())))
+		self.qq.put(("insert into pir_data(time, score, period) values (?, ?, ?)", (pirData.getCurrScore()['start'], pirData.getCurrScore()['score'], pirData.getAccumPeriod())))
 
 
 	def purge(self): 

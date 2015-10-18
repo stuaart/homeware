@@ -23,9 +23,10 @@ class PIRData:
 			if s: 
 				self.currScore['score'] += 1
 		else:
+			dbManager.insertPIRData(self)
 			self.currScore['start'] = t
 			self.currScore['end'] = t + datetime.timedelta(minutes=self.accumPeriod)
-			dbManager.insertPIRData(self)
+			self.currScore['score'] = 0
 
 	def getCurrState(self):
 		return self.currState
