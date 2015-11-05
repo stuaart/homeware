@@ -45,10 +45,12 @@ class EnvData:
 
 	temp1W = None
 	bmp085 = None
+	dht22 = None
 	
 	def __init__(self):
 		self.temp1W = {'temp' : None, 'time' : None}
 		self.bmp085 = {'temp' : None, 'pres' : None, 'time' : None}
+		self.dht22 = {'temp' : None, 'hum' : None, 'time' : None}
 
 	def setTemp1W(self, temp, time):
 		self.temp1W['temp'] = temp
@@ -58,6 +60,19 @@ class EnvData:
 		self.bmp085['temp'] = temp
 		self.bmp085['pres'] = pres
 		self.bmp085['time'] = time
+	
+	def setDHT22(self, temp, hum, time):
+		self.dht22['temp'] = temp
+		self.dht22['hum'] = hum
+		self.dht22['time'] = time
+
+	def setDHT22Temp(self, temp, time):
+		self.dht22['temp'] = temp
+		self.dht22['time'] = time
+
+	def setDHT22Hum(self, hum, time):
+		self.dht22['hum'] = hum
+		self.dht22['time'] = time
 
 	def getTemp1W(self):
 		return self.temp1W
@@ -67,4 +82,6 @@ class EnvData:
 		return self.bmp085
 #		return (self.bmp085['temp'], self.bmp085['pres'], self.bmp085['time'])
 
+	def getDHT22(self):
+		return self.dht22
 

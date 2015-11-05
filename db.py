@@ -80,11 +80,12 @@ class DBManager(threading.Thread):
 		self.qq.put(("create table pir_data(time timestamp, score real, period real)",))
 		self.qq.put(("create table env_data_temp1w(time timestamp, temp real)",))
 		self.qq.put(("create table env_data_bmp085(time timestamp, temp real, pres real)",))
+		self.qq.put(("create table env_data_dht22(time timestamp, temp real, hum real)",))
 
 	def insertEnvData(self, envData):
 		self.qq.put(("insert into env_data_temp1w(time, temp) values (?, ?)", (envData.getTemp1W()['time'], envData.getTemp1W()['temp'])))
 		self.qq.put(("insert into env_data_bmp085(time, temp, pres) values (?, ?, ?)", (envData.getBMP085()['time'], envData.getBMP085()['temp'], envData.getBMP085()['pres'])))
-
+		self.qq.put(("insert into env_data_dht22(time, temp, hum) values (?, ?, ?)", (envData.getDHT22()['time'], envData.getDHT22()['temp'], envData.getDHT22()['hum'])))
 
 
 	def insertPIRData(self, pirData):
@@ -96,4 +97,6 @@ class DBManager(threading.Thread):
 		self.qq.put(("delete from pir_data where time < ?", (d,)))
 		self.qq.put(("delete from env_data_temp1w where time < ?", (d,)))
 		self.qq.put(("delete from env_data_bmp085 where time < ?", (d,)))
+		self.qq.put(("delete from env_data_dht22 where time < ?", (d,)))
+
 
