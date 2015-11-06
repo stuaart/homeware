@@ -16,6 +16,8 @@ $(function () {
 	env_data_temp1w = [];
 	env_data_bmp085_temp = [];
 	env_data_bmp085_pres = [];
+	env_data_dht22_temp = [];
+	env_data_dht22_hum = [];
 
 	$.getJSON("pir_data.json", 
 		function(data)
@@ -59,6 +61,23 @@ $(function () {
 				);
 			}
 
+			for (i in data.env_data_dht22_temp)
+			{
+				env_data_dht22_temp.push(
+					[new Date(data.env_data_dht22_temp[i][2]).getTime(),
+							  parseFloat(data.env_data_dht22_temp[i][1])]
+				);
+
+			}
+			for (i in data.env_data_dht22_hum)
+			{
+				env_data_dht22_hum.push(
+					[new Date(data.env_data_dht22_hum[i][2]).getTime(),
+							  parseFloat(data.env_data_dht22_hum[i][1])]
+				);
+
+			}
+
 			makeChart();
 		});
 
@@ -95,7 +114,8 @@ $(function () {
 					text: 'Temperature'
 				},
 				opposite: true
-			}, {
+			}, 
+			{
 				title: {
 					text: 'Pressure'
 				},
@@ -110,6 +130,16 @@ $(function () {
 				type: 'logarithmic',
                 max: 9999,
 				min: 1
+			},
+			{
+				title: {
+					text: 'Relative humidity'
+				},
+				labels: {
+					format: '{value}%'
+				},
+				max: 100,
+				min: 0
 			}],
 			series: [{
 				name: 'Temperature (1W)',
@@ -130,6 +160,26 @@ $(function () {
 				},
 				yAxis: 0
 			},	
+			{
+				name: 'Temperature (DHT22)',
+				data: env_data_dht22_temp,
+				type: 'spline',
+				tooltip: {
+					valueSuffix: '°C'
+				},
+				yAxis: 0
+			},	
+			{
+				name: 'Relative humidity (DHT22)',
+				data: env_data_dht22_hum,
+				type: 'spline',
+				tooltip: {
+					valueSuffix: '%'
+				},
+				yAxis: 3
+			},	
+
+
 			{
 				name: 'Pressure',
 				data: env_data_bmp085_pres,
