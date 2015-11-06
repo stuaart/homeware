@@ -1,17 +1,23 @@
 #!/usr/bin/python
 
-import sqlite3
+import sqlite3, json, datetime
 import json
+
+DAYS = 7 # How many days to pull from db
 
 datadir = "/home/pi/homeware/data"
 dbfile = datadir + "/homeware-data-7-days.db"
 
+d = datetime.datetime.now() - datetime.timedelta(days=DAYS)
+
 with sqlite3.connect(dbfile, detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES) as con:
 
 	def get(table, posTime, yAxis):
+		
 		o = []
 		n = 1
-		for row in con.execute("select * from " + table):
+
+		for row in con.execute("select * from " + table + " where time > ?", (d,)):
 			o.append([n, str(row[yAxis]), str(row[posTime])])
 			n += 1
 		return o
