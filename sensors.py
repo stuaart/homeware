@@ -7,6 +7,10 @@ import sensordata
 os.system('modprobe w1-gpio')
 os.system('modprobe w1-therm')
 
+SERIAL_DEVICE  = "/dev/ttyAMA0"
+SERIAL_BAUD	   = 9600
+SERIAL_TIMEOUT = 10
+
 # LLAP standard
 LLAP_PKT_LEN = 12
 START_B 	 = 0
@@ -65,7 +69,7 @@ class SensorsManager(threading.Thread):
 		self.envData = sensordata.EnvData()
 		self.pirData = sensordata.PIRData()
 		
-		self.serDevice = serial.Serial("/dev/ttyAMA0", 9600)
+		self.serDevice = serial.Serial(SERIAL_DEVICE, SERIAL_BAUD, timeout=SERIAL_TIMEOUT)
 
 		GPIO.setmode(self.pins['mode'])
 		GPIO.setup(self.pins['pir'], GPIO.IN)
@@ -136,17 +140,27 @@ class SensorsManager(threading.Thread):
 							    datetime.datetime.now())
 
 			# Read two packets from the serial/radio
-			lines = []
+			lines = None
 			for c in s.serDevice.read(LLAP_PKT_LEN * 2):
+				if lines == None:
+					lines = []
 				lines.append(c)
-			readings = []
-			readings.append(s.readPkt(lines[:LLAP_PKT_LEN]))
-			readings.append(s.readPkt(lines[LLAP_PKT_LEN:]))
-			for reading in readings:
-				if reading[0] == HUM_TOKEN:
-					s.envData.setDHT22Hum(float(reading[2]), reading[1])
-				elif reading[0] == TEMP_TOKEN:
-					s.envData.setDHT22Temp(float(reading[2]), reading[1])
+	
+			if lines != None:
+				readings = []
+				readings.append(s.readPkt(lines[:LLAP_PKT_LEN]))
+				readings.append(s.readPkt(lines[LLAP_PKT_LEN:]))
+				for reading in readings:
+					if reading[0] == HUM_TOKEN:
+						s.envData.setDHT22Hum(float(reading[2]), reading[1])
+					elif reading[0] == TEMP_TOKEN:
+						s.envData.setDHT22Temp(float(reading[2]), reading[1])
+			else:
+				if s.screen is not None:
+					s.screen.updateStatus("Error accessing DHT22 via serial interface")
+				else:
+					print "Error accessing DHT22 via serial interface"
+
 
 
 			if s.screen is not None:

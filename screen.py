@@ -60,22 +60,32 @@ class Screen:
 			self.updateEntryText(self.PIR_DATA, entry)
 
 		elif envData is not None:
-			t1wStr = "{0:0.2f}*C".format(envData.getTemp1W()['temp'])
-	#		therm1wStr += " [CMA {0:0.2f}*C]".format(self.cmaTherms[1])			
-			t1wStr += " [" + str(envData.getTemp1W()['time']) + "]"
-		
-			bmpStr =  "{0:0.2f}*C".format(envData.getBMP085()['temp'])
-			bmpStr += " {0:0.2f}kPa".format(envData.getBMP085()['pres'] / 1000)
-			bmpStr += " [" + str(envData.getBMP085()['time']) + "]"
+			try:
+				t1wStr = "{0:0.2f}*C".format(envData.getTemp1W()['temp'])
+		#		therm1wStr += " [CMA {0:0.2f}*C]".format(self.cmaTherms[1])			
+				t1wStr += " [" + str(envData.getTemp1W()['time']) + "]"				
+				self.updateEntryText(self.ENV_DATA_TEMP1W, t1wStr)
 
-			dht22Str = "{0:0.2f}*C".format(envData.getDHT22()['temp'])
-			dht22Str += " {0:0.2f}%".format(envData.getDHT22()['hum'])
-			dht22Str += " [" + str(envData.getDHT22()['time']) + "]"
+			except ValueError:
+				self.updateStatus("Error formatting 1W temp data")
+	
+			try:
+				bmpStr =  "{0:0.2f}*C".format(envData.getBMP085()['temp'])
+				bmpStr += " {0:0.2f}kPa".format(envData.getBMP085()['pres'] / 1000)
+				bmpStr += " [" + str(envData.getBMP085()['time']) + "]"
+				self.updateEntryText(self.ENV_DATA_BMP085, bmpStr)
 
-			self.updateEntryText(self.ENV_DATA_TEMP1W, t1wStr)
-			self.updateEntryText(self.ENV_DATA_BMP085, bmpStr)
-			self.updateEntryText(self.ENV_DATA_DHT22, dht22Str)
+			except ValueError:
+				self.updateStatus("Error formatting BMP085 data")
 
+			try:
+				dht22Str = "{0:0.2f}*C".format(envData.getDHT22()['temp'])
+				dht22Str += " {0:0.2f}%".format(envData.getDHT22()['hum'])
+				dht22Str += " [" + str(envData.getDHT22()['time']) + "]"
+
+				self.updateEntryText(self.ENV_DATA_DHT22, dht22Str)
+			except ValueError:
+				self.updateStatus("Error formatting DHT22 data")
 
 
 	# NOTE: blocks
