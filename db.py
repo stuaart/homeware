@@ -40,6 +40,10 @@ class DBManager(threading.Thread):
 
 		self.setup()
 
+		self.con.commit()
+		self.con.close()
+		self.con = None
+
 		while not self.killEvent.is_set():
 			if self.qq.qsize() > 0:
 				msg = "Dequeuing and exec-ing " + str(self.qq.qsize()) + " commands"
@@ -47,6 +51,10 @@ class DBManager(threading.Thread):
 					self.screen.updateStatus(msg)
 				else:
 					print msg
+
+			if self.con is None:
+				self.con = sqlite3.connect(self.dbfile, detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES)
+
 
 			while not self.killEvent.is_set() and not self.qq.empty():
 				qt = (0)
@@ -73,8 +81,10 @@ class DBManager(threading.Thread):
 						print(err)
 
 			self.killEvent.wait(self.wait)
-
-		self.con.close()
+			
+			self.con.commit()
+			self.con.close()
+			self.con = None
 
 	def setup(self):
 		self.qq.put(("create table pir_data(time timestamp, score real, period real)",))
