@@ -146,7 +146,7 @@ class SensorsManager(threading.Thread):
 					lines = []
 				lines.append(c)
 	
-			if lines != None:
+			if lines != None and len(lines) == LLAP_PKT_LEN * 2:
 				readings = []
 				readings.append(s.readPkt(lines[:LLAP_PKT_LEN]))
 				readings.append(s.readPkt(lines[LLAP_PKT_LEN:]))
@@ -157,9 +157,9 @@ class SensorsManager(threading.Thread):
 						s.envData.setDHT22Temp(float(reading[2]), reading[1])
 			else:
 				if s.screen is not None:
-					s.screen.updateStatus("Error accessing DHT22 via serial interface")
+					s.screen.updateStatus("No reading yet from DHT22")
 				else:
-					print "Error accessing DHT22 via serial interface"
+					print "No reading yet from DHT22"
 
 
 
