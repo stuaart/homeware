@@ -21,6 +21,9 @@
 #include <DHT.h>
 
 #define DEVICEID "SR"  // this is the LLAP device ID
+#define BAUD 115200
+#define FREQ 3000 // 3s for moment ###60 seconds
+#define FACTOR 10
 
 #define DHTPIN 2     // what I/O the DHT-22 data pin is connected to
 #define DHTTYPE DHT22   // DHT 22  (AM2302)
@@ -32,22 +35,22 @@
 
 DHT dht(DHTPIN, DHTTYPE);
 
-void setup() {
-  Serial.begin(115200);
+void setup() 
+{
+  Serial.begin(BAUD);
   pinMode(8,OUTPUT);    // switch on the radio
   digitalWrite(8,HIGH);
   pinMode(4,OUTPUT);    // switch on the radio
   digitalWrite(4,LOW);  // ensure the radio is not sleeping
   delay(1000);        // allow the radio to startup
+  
   LLAP.init(DEVICEID);
-
   dht.begin();
-
   LLAP.sendMessage(F("STARTED"));
-
 }
 
-void loop() {
+void loop() 
+{
   // print the string when a newline arrives:
   if (LLAP.bMsgReceived) {
     Serial.print(F("msg:"));
@@ -55,19 +58,17 @@ void loop() {
     LLAP.bMsgReceived = false;  // if we do not clear the message flag then message processing will be blocked
   }
 
-  // every 60 seconds
   static unsigned long lastTime = millis();
-  if (millis() - lastTime >= 60000)
+  if (millis() - lastTime >= FREQ)
   {
-      lastTime = millis();
-    int h = dht.readHumidity() * 10;
-    int t = dht.readTemperature() * 10;
+    lastTime = millis();
+    int h = dht.readHumidity() * FACTOR;
+    int t = dht.readTemperature() * FACTOR;
     // check if returns are valid, if they are NaN (not a number) then something went wrong!
     if (isnan(t) || isnan(h)) {
       LLAP.sendMessage(F("ERROR"));
     } else {
       LLAP.sendIntWithDP("HUM",h,1);
-      //delay(100);
       LLAP.sendIntWithDP("TMP",t,1);
     }
   }
