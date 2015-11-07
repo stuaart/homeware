@@ -6,6 +6,7 @@ class Screen:
 	PIR_DATA 		= 1
 	ENV_DATA_TEMP1W = 2
 	ENV_DATA_BMP085 = 3
+	ENV_DATA_DHT22	= 4
 
 	LABEL_COL = 2
 
@@ -13,6 +14,7 @@ class Screen:
 	stypeCol[PIR_DATA] 		  = 20
 	stypeCol[ENV_DATA_TEMP1W] = 20
 	stypeCol[ENV_DATA_BMP085] = 20
+	stypeCol[ENV_DATA_DHT22]  = 20
 
 	scr = None
 
@@ -28,6 +30,9 @@ class Screen:
 						curses.A_BOLD)
 		self.scr.addstr(self.ENV_DATA_BMP085, self.LABEL_COL, " BMP085", 
 						curses.A_BOLD)
+		self.scr.addstr(self.ENV_DATA_DHT22, self.LABEL_COL, " DHT22", 
+						curses.A_BOLD)
+
 
 
 	def getScreen(self):
@@ -63,8 +68,13 @@ class Screen:
 			bmpStr += " {0:0.2f}kPa".format(envData.getBMP085()['pres'] / 1000)
 			bmpStr += " [" + str(envData.getBMP085()['time']) + "]"
 
+			dht22Str = "{0:0.2f}*C".format(envData.getDHT22()['temp'])
+			dht22Str += " {0:0.2f}%".format(envData.getDHT22()['hum'])
+			dht22Str += " [" + str(envData.getDHT22()['time']) + "]"
+
 			self.updateEntryText(self.ENV_DATA_TEMP1W, t1wStr)
 			self.updateEntryText(self.ENV_DATA_BMP085, bmpStr)
+			self.updateEntryText(self.ENV_DATA_DHT22, dht22Str)
 
 
 

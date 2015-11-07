@@ -1,15 +1,24 @@
-import threading
+import os, glob, time, datetime, threading, serial
 import RPi.GPIO as GPIO
-import os 
-import glob 
-import time 
 import Adafruit_BMP.BMP085 as BMP085
-import datetime
 
 import sensordata
 
 os.system('modprobe w1-gpio')
 os.system('modprobe w1-therm')
+
+# LLAP standard
+LLAP_PKT_LEN = 12
+START_B 	 = 0
+ID_B1 		 = 1
+ID_B2 		 = 2
+PADDING_B 	 = "-"
+DATA_B_START = 3
+TOKEN_LEN	 = 3
+HUM_TOKEN	 = "HUM"
+TEMP_TOKEN	 = "TMP"
+
+
 
 class SensorsManager(threading.Thread):
 
@@ -34,6 +43,7 @@ class SensorsManager(threading.Thread):
 	envData = None
 	pirData = None
 
+	serDevice = None
 
 	def __init__(self, killEvent, tId, pins, ledManager, dbManager=None, 
 				 screen=None, wait=60, pirPoll=False):
@@ -55,6 +65,8 @@ class SensorsManager(threading.Thread):
 		self.envData = sensordata.EnvData()
 		self.pirData = sensordata.PIRData()
 		
+		self.serDevice = serial.Serial("/dev/ttyAMA0", 9600)
+
 		GPIO.setmode(self.pins['mode'])
 		GPIO.setup(self.pins['pir'], GPIO.IN)
 
@@ -78,6 +90,20 @@ class SensorsManager(threading.Thread):
 
 	def getPIRData(self):
 		return self.pirData
+
+	def readPkt(self, line):
+		_start = line[START_B]
+		_id = line[ID_B1] + "" + line[ID_B2]
+		line = line[DATA_B_START:]
+		_data = ""
+		for c in line:
+			if c != PADDING_B:
+				_data += c
+
+		if _data[:TOKEN_LEN] == HUM_TOKEN:
+			return (HUM_TOKEN, datetime.datetime.now(), _data[TOKEN_LEN:])
+		elif _data[:TOKEN_LEN] == TEMP_TOKEN:
+			return (TEMP_TOKEN, datetime.datetime.now(), _data[TOKEN_LEN:])
 
 
 	def run(s):
@@ -109,6 +135,20 @@ class SensorsManager(threading.Thread):
 							    s.bmpDev.read_pressure(),
 							    datetime.datetime.now())
 
+			# Read two packets from the serial/radio
+			lines = []
+			for c in s.serDevice.read(LLAP_PKT_LEN * 2):
+				lines.append(c)
+			readings = []
+			readings.append(s.readPkt(lines[:LLAP_PKT_LEN]))
+			readings.append(s.readPkt(lines[LLAP_PKT_LEN:]))
+			for reading in readings:
+				if reading[0] == HUM_TOKEN:
+					s.envData.setDHT22Hum(float(reading[2]), reading[1])
+				elif reading[0] == TEMP_TOKEN:
+					s.envData.setDHT22Temp(float(reading[2]), reading[1])
+
+
 			if s.screen is not None:
 				s.screen.updateEntry(envData=s.envData)
 
@@ -116,6 +156,8 @@ class SensorsManager(threading.Thread):
 				s.dbManager.insertEnvData(s.envData)
 
 			s.killEvent.wait(s.wait)
+
+		s.serDevice.close()
 
 
 	def read1wRaw(self):
