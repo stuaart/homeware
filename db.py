@@ -83,9 +83,12 @@ class DBManager(threading.Thread):
 		self.qq.put(("create table env_data_dht22(time timestamp, temp real, hum real)",))
 
 	def insertEnvData(self, envData):
-		self.qq.put(("insert into env_data_temp1w(time, temp) values (?, ?)", (envData.getTemp1W()['time'], envData.getTemp1W()['temp'])))
-		self.qq.put(("insert into env_data_bmp085(time, temp, pres) values (?, ?, ?)", (envData.getBMP085()['time'], envData.getBMP085()['temp'], envData.getBMP085()['pres'])))
-		self.qq.put(("insert into env_data_dht22(time, temp, hum) values (?, ?, ?)", (envData.getDHT22()['time'], envData.getDHT22()['temp'], envData.getDHT22()['hum'])))
+		if envData.getTemp1W()['time'] != None:
+			self.qq.put(("insert into env_data_temp1w(time, temp) values (?, ?)", (envData.getTemp1W()['time'], envData.getTemp1W()['temp'])))
+		if envData.getBMP085()['time'] != None:
+			self.qq.put(("insert into env_data_bmp085(time, temp, pres) values (?, ?, ?)", (envData.getBMP085()['time'], envData.getBMP085()['temp'], envData.getBMP085()['pres'])))
+		if envData.getDHT22()['time'] != None:
+			self.qq.put(("insert into env_data_dht22(time, temp, hum) values (?, ?, ?)", (envData.getDHT22()['time'], envData.getDHT22()['temp'], envData.getDHT22()['hum'])))
 
 
 	def insertPIRData(self, pirData):
