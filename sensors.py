@@ -69,8 +69,6 @@ class SensorsManager(threading.Thread):
 		self.envData = sensordata.EnvData()
 		self.pirData = sensordata.PIRData()
 		
-		self.serDevice = serial.Serial(SERIAL_DEVICE, SERIAL_BAUD, timeout=SERIAL_TIMEOUT)
-
 		GPIO.setmode(self.pins['mode'])
 		GPIO.setup(self.pins['pir'], GPIO.IN)
 
@@ -122,7 +120,7 @@ class SensorsManager(threading.Thread):
 		while not s.killEvent.is_set():
 
 			if s.pirPoll:
-				s.pirCallback(self.pins['pir'])
+				s.pirCallback(s.pins['pir'])
 
 			temp1w = s.read1w()[0]
 
@@ -139,7 +137,9 @@ class SensorsManager(threading.Thread):
 							    s.bmpDev.read_pressure(),
 							    datetime.datetime.now())
 
+
 			# Read two packets from the serial/radio
+			s.serDevice = serial.Serial(SERIAL_DEVICE, SERIAL_BAUD, timeout=SERIAL_TIMEOUT)
 			lines = None
 			for c in s.serDevice.read(LLAP_PKT_LEN * 2):
 				if lines == None:
@@ -161,6 +161,7 @@ class SensorsManager(threading.Thread):
 				else:
 					print "No reading yet from DHT22"
 
+			s.serDevice.close()
 
 
 			if s.screen is not None:
@@ -171,7 +172,6 @@ class SensorsManager(threading.Thread):
 
 			s.killEvent.wait(s.wait)
 
-		s.serDevice.close()
 
 
 	def read1wRaw(self):
