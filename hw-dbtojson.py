@@ -22,21 +22,27 @@ with sqlite3.connect(dbfile, detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_
 			n += 1
 		return o
 
-	t1 = get("env_data_temp1w", 0, 1)
-	t2 = get("env_data_bmp085", 0, 1)
-	t3 = get("env_data_bmp085", 0, 2)
-	t4 = get("env_data_dht22", 0, 1)
-	t5 = get("env_data_dht22", 0, 2)
-	t6 = get("pir_data", 0, 1)
+	env_data = {'env_data' : 
+					{'env_data_temp1w' : get("env_data_temp1w", 0, 1),
+					 'env_data_bmp085_temp' : get("env_data_bmp085", 0, 1), 
+					 'env_data_bmp085_pres' : get("env_data_bmp085", 0, 2), 
+					 'env_data_dht22_temp' : get("env_data_dht22", 0, 1), 
+					 'env_data_dht22_hum' : get("env_data_dht22", 0, 2)}
+			   }
 
-	env_data = {'env_data' : {'env_data_temp1w' : t1, 'env_data_bmp085_temp' : t2, 'env_data_bmp085_pres' : t3, 'env_data_dht22_temp' : t4, 'env_data_dht22_hum' : t5}}
+	w_data_obs = {'w_data_obs' :
+					{'w_data_obs_temp' : get("w_data_obs", 0, 1),
+					 'w_data_obs_hum' : get("w_data_obs", 0, 2)}
+				 }
 
-	pir_data = {'pir_data' : t6}
+	pir_data = {'pir_data' : get("pir_data", 0, 1)}
 
 
 with open(datadir + '/env_data.json', 'w') as outfile:
-  json.dump(env_data, outfile, sort_keys = True, indent = 4, ensure_ascii=False)
+	json.dump(env_data, outfile, sort_keys = True, indent = 4, ensure_ascii=False)
 
 with open(datadir + '/pir_data.json', 'w') as outfile:
-  json.dump(pir_data, outfile, sort_keys = True, indent = 4, ensure_ascii=False)
+	json.dump(pir_data, outfile, sort_keys = True, indent = 4, ensure_ascii=False)
 
+with open(datadir + "/w_data_obs.json", 'w') as outfile:
+	json.dump(w_data_obs, outfile, sort_keys = True, indent = 4, ensure_ascii = False)
