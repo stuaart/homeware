@@ -18,6 +18,9 @@ $(function () {
 	env_data_bmp085_pres = [];
 	env_data_dht22_temp = [];
 	env_data_dht22_hum = [];
+	
+	w_data_obs_temp = [];
+	w_data_obs_hum = [];
 
 	$.getJSON("pir_data.json", 
 		function(data)
@@ -31,6 +34,26 @@ $(function () {
 			}
 
 			makeChart();
+		});
+
+	$.getJSON("w_data_obs.json",
+		function(data)
+		{
+			for (i in data.w_data_obs_temp)
+			{
+				w_data_obs_temp.push(
+					[new Date(data.w_data_obs_temp[i][2]).getTime(),
+						parseFloat(data.w_data_obs_temp[i][1])]
+				);
+			}
+			for (i in data.w_data_obs_hum)
+			{
+				w_data_obs_hum.push(
+					[new Date(data.w_data_obs_hum[i][2]).getTime(),
+						parseFloat(data.w_data_obs_hum[i][1])]
+				);
+			}
+	
 		});
 
 	$.getJSON("env_data.json", 
@@ -178,7 +201,24 @@ $(function () {
 				},
 				yAxis: 3
 			},	
-
+			{
+				name: 'Temperature (observation)',
+				data: w_data_obs_temp,
+				type: 'spline',
+				tooltip: {
+					valueSuffix: '°C'
+				},
+				yAxis: 0
+			},	
+			{
+				name: 'Relative humidity (observation)',
+				data: w_data_obs_hum,
+				type: 'spline',
+				tooltip: {
+					valueSuffix: '%'
+				},
+				yAxis: 3
+			},	
 
 			{
 				name: 'Pressure',
