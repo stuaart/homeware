@@ -3,7 +3,7 @@ import datetime
 import threading
 import Queue
 
-import sensordata
+import sensordata, externaldata
 import screen
 
 
@@ -91,15 +91,19 @@ class DBManager(threading.Thread):
 		self.qq.put(("create table env_data_temp1w(time timestamp, temp real)",))
 		self.qq.put(("create table env_data_bmp085(time timestamp, temp real, pres real)",))
 		self.qq.put(("create table env_data_dht22(time timestamp, temp real, hum real)",))
+		self.qq.put(("create table w_data_obs(time timestamp, temp real, hum real)",))
 
 	def insertEnvData(self, envData):
 		if envData.getTemp1W()['time'] != None:
 			self.qq.put(("insert into env_data_temp1w(time, temp) values (?, ?)", (envData.getTemp1W()['time'], envData.getTemp1W()['temp'])))
 		if envData.getBMP085()['time'] != None:
 			self.qq.put(("insert into env_data_bmp085(time, temp, pres) values (?, ?, ?)", (envData.getBMP085()['time'], envData.getBMP085()['temp'], envData.getBMP085()['pres'])))
-		if envData.getDHT22()['time'] != None:
+		if envData.getDHT22()['time'] != None and envData.getDHT22()['temp'] != None and envData.getDHT22()['hum'] != None:
 			self.qq.put(("insert into env_data_dht22(time, temp, hum) values (?, ?, ?)", (envData.getDHT22()['time'], envData.getDHT22()['temp'], envData.getDHT22()['hum'])))
 
+	def insertWData(self, wData):
+		if wData.getWData()['time'] != None:
+			self.qq.put(("insert into w_data_obs(time, temp, hum) values (?, ?, ?)", (wData.getWData()['temp'], wData.getWData()['hum'], wData.getWData()['time'])))
 
 	def insertPIRData(self, pirData):
 		self.qq.put(("insert into pir_data(time, score, period) values (?, ?, ?)", (pirData.getCurrScore()['start'], pirData.getCurrScore()['score'], pirData.getAccumPeriod())))
@@ -111,5 +115,5 @@ class DBManager(threading.Thread):
 		self.qq.put(("delete from env_data_temp1w where time < ?", (d,)))
 		self.qq.put(("delete from env_data_bmp085 where time < ?", (d,)))
 		self.qq.put(("delete from env_data_dht22 where time < ?", (d,)))
-
+		self.qq.put(("delete from w_data_obs where time < ?", (d, )))
 

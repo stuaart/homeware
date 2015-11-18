@@ -151,10 +151,11 @@ class SensorsManager(threading.Thread):
 				readings.append(s.readPkt(lines[:LLAP_PKT_LEN]))
 				readings.append(s.readPkt(lines[LLAP_PKT_LEN:]))
 				for reading in readings:
-					if reading[0] == HUM_TOKEN:
-						s.envData.setDHT22Hum(float(reading[2]), reading[1])
-					elif reading[0] == TEMP_TOKEN:
-						s.envData.setDHT22Temp(float(reading[2]), reading[1])
+					if reading != None:
+						if reading[0] != None and reading[0] == HUM_TOKEN:
+							s.envData.setDHT22Hum(float(reading[2]), reading[1])
+						elif reading[0] != None and reading[0] == TEMP_TOKEN:
+							s.envData.setDHT22Temp(float(reading[2]), reading[1])
 			else:
 				if s.screen is not None:
 					s.screen.updateStatus("No reading yet from DHT22")

@@ -7,6 +7,7 @@ class Screen:
 	ENV_DATA_TEMP1W = 2
 	ENV_DATA_BMP085 = 3
 	ENV_DATA_DHT22	= 4
+	W_DATA_OBS		= 5
 
 	LABEL_COL = 2
 
@@ -15,6 +16,7 @@ class Screen:
 	stypeCol[ENV_DATA_TEMP1W] = 20
 	stypeCol[ENV_DATA_BMP085] = 20
 	stypeCol[ENV_DATA_DHT22]  = 20
+	stypeCol[W_DATA_OBS] 	  = 20
 
 	scr = None
 
@@ -31,6 +33,8 @@ class Screen:
 		self.scr.addstr(self.ENV_DATA_BMP085, self.LABEL_COL, " BMP085", 
 						curses.A_BOLD)
 		self.scr.addstr(self.ENV_DATA_DHT22, self.LABEL_COL, " DHT22", 
+						curses.A_BOLD)
+		self.scr.addstr(self.W_DATA_OBS, self.LABEL_COL, " Weather obs", 
 						curses.A_BOLD)
 
 
@@ -50,7 +54,7 @@ class Screen:
 		self.scr.addstr(stype, self.stypeCol[stype], text)
 		self.scr.refresh()
 	
-	def updateEntry(self, pirData=None, envData=None):
+	def updateEntry(self, pirData=None, envData=None, wData=None):
 		if pirData is not None:
 			entry = "CurrState=" + str(pirData.getCurrState()['state']) + " [" 
 			entry += str(pirData.getCurrState()['time'])
@@ -87,6 +91,15 @@ class Screen:
 			except ValueError:
 				self.updateStatus("Error formatting DHT22 data")
 
+		elif wData is not None:
+			try:
+				wDataStr = "{0:0.2f}*C".format(wData.getWData()['temp'])
+				wDataStr += " {0:0.2f}%".format(wData.getWData()['hum'])
+				wDataStr += " [" + str(wData.getWData()['time']) + "]"
+
+				self.updateEntryText(self.W_DATA_OBS, wDataStr)
+			except ValueError:
+				self.updateStatus("Error formatting weather observation data")
 
 	# NOTE: blocks
 	def updateStatus(self, text, sleep=0):
