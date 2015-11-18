@@ -75,10 +75,10 @@ class DBManager(threading.Thread):
 							print(msg)
 				except:
 					err = "Error: query = %s" % (qt,)
-					if self.screen is not None:
-						self.screen.updateStatus(err)
-					else:
-						print(err)
+					#if self.screen is not None:
+					#	self.screen.updateStatus(err)
+					#else:
+					#	print(err)
 
 			self.killEvent.wait(self.wait)
 			
@@ -103,7 +103,7 @@ class DBManager(threading.Thread):
 
 	def insertWData(self, wData):
 		if wData.getWData()['time'] != None:
-			self.qq.put(("insert into w_data_obs(time, temp, hum) values (?, ?, ?)", (wData.getWData()['temp'], wData.getWData()['hum'], wData.getWData()['time'])))
+			self.qq.put(("insert into w_data_obs(time, temp, hum) values (?, ?, ?)", (wData.getWData()['time'], wData.getWData()['temp'], wData.getWData()['hum'])))
 
 	def insertPIRData(self, pirData):
 		self.qq.put(("insert into pir_data(time, score, period) values (?, ?, ?)", (pirData.getCurrScore()['start'], pirData.getCurrScore()['score'], pirData.getAccumPeriod())))

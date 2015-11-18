@@ -46,16 +46,20 @@ class WeatherManager(threading.Thread):
 			res = urllib2.urlopen(self.datapointURL)
 			obj = json.loads(res.read())
 			d = datetime.datetime.strptime(obj['SiteRep']['DV']['dataDate'], "%Y-%m-%dT%H:%M:%SZ")
-			latest = obj['SiteRep']['DV']['Location']['Period'][1]['Rep']
-			if latest != None and len(latest) > 0 and self.wData.getWData()['time'] != None and d > self.wData.getWData()['time']:
-				readings = latest[len(latest)-1]
+			newWData = True
+			if self.wData.getWData()['time'] != None and d == self.wData.getWData()['time']:
+				newWData = False
 
+			latest = obj['SiteRep']['DV']['Location']['Period'][1]['Rep']
+
+			if latest != None and len(latest) > 0:
+				readings = latest[len(latest)-1]
 				self.wData.setObs(float(readings['T']), float(readings['H']), d)
 			
 				if self.screen is not None:
 					self.screen.updateEntry(wData=self.wData)
 	
-				if self.dbManager is not None:
+				if self.dbManager is not None and newWData:
 					self.dbManager.insertWData(self.wData)
 
 			self.killEvent.wait(self.wait)
