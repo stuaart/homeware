@@ -13,7 +13,7 @@ class WeatherManager(threading.Thread):
 	wData = None
 	datapointURL = None
 
-	def __init__(self, killEvent, tId, dbManager=None, screen=None, wait=3600):
+	def __init__(self, killEvent, tId, dbManager=None, screen=None, wait=1800):
 		
 		super(WeatherManager, self).__init__()
 
@@ -47,7 +47,7 @@ class WeatherManager(threading.Thread):
 			obj = json.loads(res.read())
 			d = datetime.datetime.strptime(obj['SiteRep']['DV']['dataDate'], "%Y-%m-%dT%H:%M:%SZ")
 			latest = obj['SiteRep']['DV']['Location']['Period'][1]['Rep']
-			if latest != None and len(latest) > 0:
+			if latest != None and len(latest) > 0 and self.wData.getWData()['time'] != None and d > self.wData.getWData()['time']:
 				readings = latest[len(latest)-1]
 
 				self.wData.setObs(float(readings['T']), float(readings['H']), d)
