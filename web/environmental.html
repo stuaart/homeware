@@ -37,8 +37,9 @@ $(function () {
 		});
 
 	$.getJSON("w_data_obs.json",
-		function(data)
+		function(data_)
 		{
+			data = data_.w_data_obs
 			for (i in data.w_data_obs_temp)
 			{
 				w_data_obs_temp.push(
