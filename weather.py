@@ -1,4 +1,4 @@
-import json, urllib2, datetime, threading, time
+import json, urllib2, datetime, threading, time, logging
 
 import db, screen, externaldata
 
@@ -53,15 +53,19 @@ class WeatherManager(threading.Thread):
 			latest = obj['SiteRep']['DV']['Location']['Period'][1]['Rep']
 
 			if latest != None and len(latest) > 0:
-				readings = latest[len(latest)-1]
-				self.wData.setObs(float(readings['T']), float(readings['H']), d)
+				try: 
+					readings = latest[len(latest)-1]
+					self.wData.setObs(float(readings['T']), float(readings['H']), d)
 			
-				if self.screen is not None:
-					self.screen.updateEntry(wData=self.wData)
+					if self.screen is not None:
+						self.screen.updateEntry(wData=self.wData)
 	
-				if self.dbManager is not None and newWData:
-					self.dbManager.insertWData(self.wData)
-
+					if self.dbManager is not None and newWData:
+						self.dbManager.insertWData(self.wData)
+				except KeyError:
+					logging.error("Problem with weather data: " + str(latest))
+					logging.error("DataPoint source data:")
+					logging.error(str(obj))
 			self.killEvent.wait(self.wait)
 
 

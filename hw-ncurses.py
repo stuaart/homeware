@@ -1,13 +1,15 @@
 #!/usr/bin/python
 
 import RPi.GPIO as GPIO
-import threading
+import threading, logging
 
 import leds
 import sensors
 import db
 import screen
 import weather
+
+logging.basicConfig(filename="error.log", level=logging.DEBUG)
 
 pins = {'mode' : GPIO.BCM, 'pir' : 7, 'pir_led' : 25}
 
@@ -28,6 +30,8 @@ threads['dbm'].start()
 threads['ssm'].start()
 threads['wm'].start()
 
+logging.debug("Starting...")
+
 try:
 	while True:
 		if screen.scr.getch() == ord('q'):
@@ -41,5 +45,7 @@ except KeyboardInterrupt:
 	
 	screen.close()
 	GPIO.cleanup()
+
+	logging.debug("Cleaning up for exit")
 	exit()
 
