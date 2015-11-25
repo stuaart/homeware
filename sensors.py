@@ -1,4 +1,4 @@
-import os, glob, time, datetime, threading, serial
+import os, glob, time, datetime, threading, serial, logging
 import RPi.GPIO as GPIO
 import Adafruit_BMP.BMP085 as BMP085
 
@@ -110,11 +110,7 @@ class SensorsManager(threading.Thread):
 
 	def run(s):
 
-		if s.screen is not None:
-			s.screen.updateStatus("SensorsManager running [tid=" + 
-									 str(s.tId) + "]")
-		else: 
-			print "SensorsManager running [tid=" + str(s.tId) + "]"
+		logging.info("SensorsManager running [tid=" + str(s.tId) + "]")
 
 
 		while not s.killEvent.is_set():

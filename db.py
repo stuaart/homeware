@@ -1,6 +1,4 @@
-import sqlite3
-import datetime
-import threading
+import sqlite3, datetime, threading, logging
 import Queue
 
 import sensordata, externaldata
@@ -52,6 +50,8 @@ class DBManager(threading.Thread):
 				else:
 					print msg
 
+				logging.info(msg)
+
 			if self.con is None:
 				self.con = sqlite3.connect(self.dbfile, detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES)
 
@@ -73,12 +73,12 @@ class DBManager(threading.Thread):
 							self.screen.updateStatus(msg)
 						else: 
 							print(msg)
+
+						logging.info(msg)
+
 				except:
 					err = "Error: query = %s" % (qt,)
-					#if self.screen is not None:
-					#	self.screen.updateStatus(err)
-					#else:
-					#	print(err)
+					logging.error(err)
 
 			self.killEvent.wait(self.wait)
 			

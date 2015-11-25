@@ -35,10 +35,7 @@ class WeatherManager(threading.Thread):
 
 
 	def run(self):
-		if self.screen is not None:
-			self.screen.updateStatus("WeatherManager running [tid=" + str(self.tId) + "]")
-		else:
-			print "WeatherManager running [tid=" + str(self.tId) + "]"
+		logging.info("WeatherManager running [tid=" + str(self.tId) + "]")
 
 		while not self.killEvent.is_set():
 	
@@ -50,11 +47,17 @@ class WeatherManager(threading.Thread):
 			if self.wData.getWData()['time'] != None and d == self.wData.getWData()['time']:
 				newWData = False
 
-			latest = obj['SiteRep']['DV']['Location']['Period'][1]['Rep']
+			latest_ = obj['SiteRep']['DV']['Location']['Period']
+			latest = latest_[len(latest_)-1]['Rep']
 
-			if latest != None and len(latest) > 0:
+			if latest != None:
 				try: 
-					readings = latest[len(latest)-1]
+					readings = None
+					if isinstance(latest, dict):
+						readings = latest
+					elif len(latest) > 0:
+						readings = latest[len(latest)-1]
+
 					self.wData.setObs(float(readings['T']), float(readings['H']), d)
 			
 					if self.screen is not None:
@@ -62,10 +65,10 @@ class WeatherManager(threading.Thread):
 	
 					if self.dbManager is not None and newWData:
 						self.dbManager.insertWData(self.wData)
+
 				except KeyError:
 					logging.error("Problem with weather data: " + str(latest))
-					logging.error("DataPoint source data:")
-					logging.error(str(obj))
+
 			self.killEvent.wait(self.wait)
 
 
