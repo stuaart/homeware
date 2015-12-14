@@ -9,7 +9,7 @@ import db
 import screen
 import weather
 
-logging.basicConfig(filename="error.log", level=logging.INFO)
+logging.basicConfig(filename="error.log", level=logging.WARN)
 
 pins = {'mode' : GPIO.BCM, 'pir' : 7, 'pir_led' : 25}
 

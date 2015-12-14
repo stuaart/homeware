@@ -35,7 +35,7 @@ class WeatherManager(threading.Thread):
 
 
 	def run(self):
-		logging.info("WeatherManager running [tid=" + str(self.tId) + "]")
+		logging.info("[" + str(datetime.datetime.now()) + "] WeatherManager running [tid=" + str(self.tId) + "]")
 
 		while not self.killEvent.is_set():
 	
@@ -67,7 +67,7 @@ class WeatherManager(threading.Thread):
 						self.dbManager.insertWData(self.wData)
 
 				except KeyError:
-					logging.error("Problem with weather data: " + str(latest))
+					logging.error("[" + str(datetime.datetime.now()) + "] Problem with weather data, KeyError: " + str(latest))
 
 			self.killEvent.wait(self.wait)
 
