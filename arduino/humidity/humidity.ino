@@ -1,4 +1,3 @@
-
 // Arduino sketch for humidity/temp sensor and LLAP over radio
 // Adapted from Ciseco example
 
@@ -15,14 +14,19 @@
 //
 // Uses the Ciseco LLAPSerial library
 // Uses the Adafruit DHT library https://github.com/adafruit/DHT-sensor-library
+// Uses JeeLib for low power mode
 //////////////////////////////////////////////////////////////////////////
 
+#include <JeeLib.h>
 #include <LLAPSerial.h>
 #include <DHT.h>
 
+
+//ISR(WDT_vect) { Sleepy::watchdogEvent(); } // Already been called in LLAPSerial
+
 #define DEVICEID "SR"  // this is the LLAP device ID
 #define BAUD 115200
-#define FREQ 3000 // 3s for moment ###60 seconds
+#define FREQ 1800000     // 30 mins
 #define FACTOR 10
 
 #define DHTPIN 2     // what I/O the DHT-22 data pin is connected to
@@ -37,16 +41,30 @@ DHT dht(DHTPIN, DHTTYPE);
 
 void setup() 
 {
+
   Serial.begin(BAUD);
-  pinMode(8,OUTPUT);    // switch on the radio
-  digitalWrite(8,HIGH);
-  pinMode(4,OUTPUT);    // switch on the radio
-  digitalWrite(4,LOW);  // ensure the radio is not sleeping
+  pinMode(8, OUTPUT);    // switch on the radio
+  digitalWrite(8, HIGH);
+  pinMode(4, OUTPUT);    // switch on the radio
+  digitalWrite(4, LOW);  // ensure the radio is not sleeping
   delay(1000);        // allow the radio to startup
   
   LLAP.init(DEVICEID);
   dht.begin();
   LLAP.sendMessage(F("STARTED"));
+}
+
+void readDHT()
+{
+    int h = dht.readHumidity() * FACTOR;
+    int t = dht.readTemperature() * FACTOR;
+    // check if returns are valid, if they are NaN (not a number) then something went wrong!
+    if (isnan(t) || isnan(h)) {
+      LLAP.sendMessage(F("ERROR"));
+    } else {
+      LLAP.sendIntWithDP("HUM",h,1);
+      LLAP.sendIntWithDP("TMP",t,1);
+    }
 }
 
 void loop() 
@@ -57,19 +75,6 @@ void loop()
     Serial.println(LLAP.sMessage); 
     LLAP.bMsgReceived = false;  // if we do not clear the message flag then message processing will be blocked
   }
-
-  static unsigned long lastTime = millis();
-  if (millis() - lastTime >= FREQ)
-  {
-    lastTime = millis();
-    int h = dht.readHumidity() * FACTOR;
-    int t = dht.readTemperature() * FACTOR;
-    // check if returns are valid, if they are NaN (not a number) then something went wrong!
-    if (isnan(t) || isnan(h)) {
-      LLAP.sendMessage(F("ERROR"));
-    } else {
-      LLAP.sendIntWithDP("HUM",h,1);
-      LLAP.sendIntWithDP("TMP",t,1);
-    }
-  }
+  readDHT();
+  Sleepy::loseSomeTime(FREQ);
 }
