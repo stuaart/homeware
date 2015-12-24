@@ -2,25 +2,10 @@ import os, glob, time, datetime, threading, serial, logging
 import RPi.GPIO as GPIO
 import Adafruit_BMP.BMP085 as BMP085
 
-import sensordata
+import sensordata, envrfpoller
 
 os.system('modprobe w1-gpio')
 os.system('modprobe w1-therm')
-
-SERIAL_DEVICE  = "/dev/ttyAMA0"
-SERIAL_BAUD	   = 9600
-SERIAL_TIMEOUT = 10
-
-# LLAP standard
-LLAP_PKT_LEN = 12
-START_B 	 = 0
-ID_B1 		 = 1
-ID_B2 		 = 2
-PADDING_B 	 = "-"
-DATA_B_START = 3
-TOKEN_LEN	 = 3
-HUM_TOKEN	 = "HUM"
-TEMP_TOKEN	 = "TMP"
 
 
 
@@ -47,7 +32,7 @@ class SensorsManager(threading.Thread):
 	envData = None
 	pirData = None
 
-	serDevice = None
+	envRFPoller = None
 
 	def __init__(self, killEvent, tId, pins, ledManager, dbManager=None, 
 				 screen=None, wait=60, pirPoll=False):
@@ -86,26 +71,17 @@ class SensorsManager(threading.Thread):
 
 		self.bmpDev = BMP085.BMP085()
 
+		# Frequency at which this polls *must* be < the frequency of data being sent 
+		self.envRFPoller = envrfpoller.EnvRFPoller(killEvent, self.envData, screen)
+		self.envRFPoller.start()
+
 
 	def getEnvData(self):
 		return self.envData
 
+
 	def getPIRData(self):
 		return self.pirData
-
-	def readPkt(self, line):
-		_start = line[START_B]
-		_id = line[ID_B1] + "" + line[ID_B2]
-		line = line[DATA_B_START:]
-		_data = ""
-		for c in line:
-			if c != PADDING_B:
-				_data += c
-
-		if _data[:TOKEN_LEN] == HUM_TOKEN:
-			return (HUM_TOKEN, datetime.datetime.now(), _data[TOKEN_LEN:])
-		elif _data[:TOKEN_LEN] == TEMP_TOKEN:
-			return (TEMP_TOKEN, datetime.datetime.now(), _data[TOKEN_LEN:])
 
 
 	def run(s):
@@ -133,32 +109,6 @@ class SensorsManager(threading.Thread):
 							    s.bmpDev.read_pressure(),
 							    datetime.datetime.now())
 
-
-			# Read two packets from the serial/radio
-			s.serDevice = serial.Serial(SERIAL_DEVICE, SERIAL_BAUD, timeout=SERIAL_TIMEOUT)
-			lines = None
-			for c in s.serDevice.read(LLAP_PKT_LEN * 2):
-				if lines == None:
-					lines = []
-				lines.append(c)
-	
-			if lines != None and len(lines) == LLAP_PKT_LEN * 2:
-				readings = []
-				readings.append(s.readPkt(lines[:LLAP_PKT_LEN]))
-				readings.append(s.readPkt(lines[LLAP_PKT_LEN:]))
-				for reading in readings:
-					if reading != None:
-						if reading[0] != None and reading[0] == HUM_TOKEN:
-							s.envData.setDHT22Hum(float(reading[2]), reading[1])
-						elif reading[0] != None and reading[0] == TEMP_TOKEN:
-							s.envData.setDHT22Temp(float(reading[2]), reading[1])
-			else:
-				if s.screen is not None:
-					s.screen.updateStatus("No reading yet from DHT22")
-				else:
-					print "No reading yet from DHT22"
-
-			s.serDevice.close()
 
 
 			if s.screen is not None:

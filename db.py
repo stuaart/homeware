@@ -50,7 +50,7 @@ class DBManager(threading.Thread):
 				else:
 					print msg
 
-				logging.info("[" + str(datetime.datetime.now()) + "] " + msg)
+				logging.info(msg)
 
 			if self.con is None:
 				self.con = sqlite3.connect(self.dbfile, detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES)
@@ -74,11 +74,11 @@ class DBManager(threading.Thread):
 						else: 
 							print(msg)
 
-						logging.info("[" + str(datetime.datetime.now()) + "] " + msg)
+						logging.info(msg)
 
 				except:
 					err = "Error: query = %s" % (qt,)
-					logging.error("[" + str(datetime.datetime.now()) + "] " + err)
+					logging.error(err)
 
 			self.killEvent.wait(self.wait)
 			
