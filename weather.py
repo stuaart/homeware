@@ -35,7 +35,7 @@ class WeatherManager(threading.Thread):
 
 
 	def run(self):
-		logging.info("[" + str(datetime.datetime.now()) + "] WeatherManager running [tid=" + str(self.tId) + "]")
+		logging.info("WeatherManager running [tid=" + str(self.tId) + "]")
 
 		while not self.killEvent.is_set():
 	

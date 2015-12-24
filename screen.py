@@ -1,5 +1,4 @@
-import curses
-import time
+import curses, logging, time
 
 class Screen:
 
@@ -72,6 +71,9 @@ class Screen:
 
 			except ValueError:
 				self.updateStatus("Error formatting 1W temp data")
+				logging.error("Error formatting 1W data")
+				logging.error(envData.getTemp1W())
+
 	
 			try:
 				bmpStr =  "{0:0.2f}*C".format(envData.getBMP085()['temp'])
@@ -81,6 +83,9 @@ class Screen:
 
 			except ValueError:
 				self.updateStatus("Error formatting BMP085 data")
+				logging.error("Error formatting BMP085 data")
+				logging.error(envData.getBMP085())
+
 
 			try:
 				dht22Str = "{0:0.2f}*C".format(envData.getDHT22()['temp'])
@@ -90,6 +95,8 @@ class Screen:
 				self.updateEntryText(self.ENV_DATA_DHT22, dht22Str)
 			except ValueError:
 				self.updateStatus("Error formatting DHT22 data")
+				logging.error("Error formatting DHT22 data")
+				logging.error(envData.getDHT22())
 
 		elif wData is not None:
 			try:
