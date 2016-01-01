@@ -40,15 +40,20 @@ class WeatherManager(threading.Thread):
 		while not self.killEvent.is_set():
 	
 
-			res = urllib2.urlopen(self.datapointURL)
-			obj = json.loads(res.read())
-			d = datetime.datetime.strptime(obj['SiteRep']['DV']['dataDate'], "%Y-%m-%dT%H:%M:%SZ")
-			newWData = True
-			if self.wData.getWData()['time'] != None and d == self.wData.getWData()['time']:
-				newWData = False
+			latest = None
 
-			latest_ = obj['SiteRep']['DV']['Location']['Period']
-			latest = latest_[len(latest_)-1]['Rep']
+			try:
+				res = urllib2.urlopen(self.datapointURL)
+				obj = json.loads(res.read())
+				d = datetime.datetime.strptime(obj['SiteRep']['DV']['dataDate'], "%Y-%m-%dT%H:%M:%SZ")
+				newWData = True
+				if self.wData.getWData()['time'] != None and d == self.wData.getWData()['time']:
+					newWData = False
+
+				latest_ = obj['SiteRep']['DV']['Location']['Period']
+				latest = latest_[len(latest_)-1]['Rep']
+			except URLError:
+				logging.error("Error opening URL " + self.datapointURL)
 
 			if latest != None:
 				try: 
