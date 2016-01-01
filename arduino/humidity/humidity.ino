@@ -1,75 +1,128 @@
-
-// Arduino sketch for humidity/temp sensor and LLAP over radio
-// Adapted from Ciseco example
-
-
 //////////////////////////////////////////////////////////////////////////
-// LLAP temperature and humidity sensor using a DHT22
+// Arduino sketch for humidity/temp sensor and LLAP over radio
+//    Adapted from Ciseco example located here: https://github.com/CisecoPlc/LLAPSerial/blob/master/examples/LLAP_DHT22/LLAP_DHT22.ino
+//    DHT22 readings may be up to 2s old
 //
-// Reading temperature or humidity takes about 250 milliseconds!
-// Sensor readings may also be up to 2 seconds 'old' (its a very slow sensor)
-//
-// will work with any Arduino compatible however the target boards are the 
-// Ciseco XinoRF and RFu-328, for LLAP over radio
-// 
-//
-// Uses the Ciseco LLAPSerial library
-// Uses the Adafruit DHT library https://github.com/adafruit/DHT-sensor-library
+// Libraries required in your library 
+//    Ciseco LLAPSerial: https://github.com/CisecoPlc/LLAPSerial
+//    Adafruit DHT: https://github.com/adafruit/DHT-sensor-library
 //////////////////////////////////////////////////////////////////////////
 
 #include <LLAPSerial.h>
 #include <DHT.h>
 
-#define DEVICEID "SR"  // this is the LLAP device ID
-#define BAUD 115200
-#define FREQ 3000 // 3s for moment ###60 seconds
-#define FACTOR 10
+#define DEVICE_ID   "SR"          // LLAP device ID
+#define BAUD_RATE   115200
+#define FREQ        90            // Sample every 15 mins (in 10000ms fragments: LLAP.sleepForaWhile() max word length)
 
-#define DHTPIN 2     // what I/O the DHT-22 data pin is connected to
-#define DHTTYPE DHT22   // DHT 22  (AM2302)
+#define SAMPLES_PER_READING 3     // No. readings to average over
+#define READING_FREQ        10    // Wait 10 secs between readings
 
-// Connect pin 1 (on the left) of the sensor to +5V
-// Connect pin 2 of the sensor to whatever your DHTPIN is
-// Connect pin 4 (on the right) of the sensor to GROUND
-// Connect a 10K resistor from pin 2 (data) to pin 1 (power) of the sensor
+#define DHT_PIN             2     // Pin config
+#define DHT_TYPE            DHT22 // Sensor config, DHT 22 (AM2302)
+#define SRF_RF_ENABLE_PIN   8
+#define SRF_SLEEP_PIN       4 
 
-DHT dht(DHTPIN, DHTTYPE);
+
+DHT dht(DHT_PIN, DHT_TYPE); //Humidity: 2-5% accuracy; Temperature: +/- 0.5*c
 
 void setup() 
 {
-  Serial.begin(BAUD);
-  pinMode(8,OUTPUT);    // switch on the radio
-  digitalWrite(8,HIGH);
-  pinMode(4,OUTPUT);    // switch on the radio
-  digitalWrite(4,LOW);  // ensure the radio is not sleeping
-  delay(1000);        // allow the radio to startup
+
+  Serial.begin(BAUD_RATE);
   
-  LLAP.init(DEVICEID);
+  digitalWrite(DHT_PIN, LOW); // No voltage to pin
+  
+  pinMode(SRF_RF_ENABLE_PIN, OUTPUT);
+  digitalWrite(SRF_RF_ENABLE_PIN, HIGH); // Select radio
+
+  // SRF sleep mode 2
+  pinMode(SRF_SLEEP_PIN, OUTPUT);
+  digitalWrite(SRF_SLEEP_PIN, LOW);
+  delay(1000);
+  Serial.print("+++");              // enter AT command mode
+  delay(1500);                      // delay 1.5s
+  Serial.println("ATSM2");          // enable sleep mode 2 <0.5uA
+  delay(2000);
+  Serial.println("ATDN");           // exit AT command mode
+  delay(2000);
+  
+  LLAP.init(DEVICE_ID);
   dht.begin();
   LLAP.sendMessage(F("STARTED"));
 }
 
+void* readDHT(int *readings)
+{  
+  digitalWrite(DHT_PIN, HIGH); // Voltage to pin
+  int h = dht.readHumidity() * 10;
+  int t = dht.readTemperature() * 10;
+  digitalWrite(DHT_PIN, LOW); // No voltage to pin
+
+  if (isnan(t) || isnan(h)) 
+  {
+    return NULL;
+  } 
+  else 
+  {
+    readings[0] = h;
+    readings[1] = t;
+    
+    Serial.flush();
+  }
+}
+
 void loop() 
 {
-  // print the string when a newline arrives:
+/*  // print the string when a newline arrives:
   if (LLAP.bMsgReceived) {
     Serial.print(F("msg:"));
     Serial.println(LLAP.sMessage); 
     LLAP.bMsgReceived = false;  // if we do not clear the message flag then message processing will be blocked
   }
+*/
 
-  static unsigned long lastTime = millis();
-  if (millis() - lastTime >= FREQ)
+  int sumReadings[2] = {0, 0};
+  word n = SAMPLES_PER_READING;
+  for (word i = 0; i < SAMPLES_PER_READING; ++i)
   {
-    lastTime = millis();
-    int h = dht.readHumidity() * FACTOR;
-    int t = dht.readTemperature() * FACTOR;
-    // check if returns are valid, if they are NaN (not a number) then something went wrong!
-    if (isnan(t) || isnan(h)) {
-      LLAP.sendMessage(F("ERROR"));
-    } else {
-      LLAP.sendIntWithDP("HUM",h,1);
-      LLAP.sendIntWithDP("TMP",t,1);
+    int readings[2] = {0, 0};
+    if (!readDHT(readings))
+      n -= 1;
+    else
+    {
+      sumReadings[0] += readings[0];
+      sumReadings[1] += readings[1];
     }
+    
+    delay(READING_FREQ * 1000); // Better way of sleeping?
+    
   }
+
+  if (n == 0)
+    LLAP.sendMessage(F("ERROR"));
+  else 
+  {
+    float avReadings[2];
+    avReadings[0] = sumReadings[0] / n;
+    avReadings[1] = sumReadings[1] / n;
+
+    LLAP.sendIntWithDP("HUM", avReadings[0], 1);
+    LLAP.sendIntWithDP("TMP", avReadings[1], 1);
+    delay(10);                         // allow radio to finish sending
+  }
+  
+  digitalWrite(SRF_SLEEP_PIN, HIGH); // pull sleep pin high to enter SRF sleep 2
+
+  word sc = 0;
+  while (sc < FREQ)
+  {
+    //delay(10);
+    LLAP.sleepForaWhile(10000); // Max word length => 10 seconds
+    sc++;
+  }
+  
+  digitalWrite(SRF_SLEEP_PIN, LOW);
+  delay(10);
 }
+
