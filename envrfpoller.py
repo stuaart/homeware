@@ -12,9 +12,6 @@ ID_B2 		 = 2
 PADDING_B 	 = "-"
 DATA_B_START = 3
 TOKEN_LEN	 = 3
-#HUM_TOKEN	 = "HUM"
-#TEMP_TOKEN	 = "TMP"
-#VCC_TOKEN	 = "VCC"
 
 TOKENS = { "HUM_TOKEN" : "HUM", "TEMP_TOKEN" : "TMP", "VCC_TOKEN" : "VCC" }
 
@@ -64,7 +61,6 @@ class EnvRFPoller(threading.Thread):
 		c_ = False
 
 		while not self.killEvent.is_set() and self.ser.isOpen():
-			logging.debug("EnvRFPoller cycle")
 			try:
 
 				for c in self.ser.read(1):
@@ -82,6 +78,8 @@ class EnvRFPoller(threading.Thread):
 										self.envData.setDHT22Hum(float(pkt[2]), pkt[1])
 									elif pkt[0] == TOKENS["TEMP_TOKEN"]:
 										self.envData.setDHT22Temp(float(pkt[2]), pkt[1])
+									elif pkt[0] == TOKENS["VCC_TOKEN"]:
+										logging.info("VCC at " + str(pkt[1]) + " = " + str(pkt[2]))
 								except ValueError:
 									logging.error("Problem formatting DHT22 packet value; packet value = " + str(pkt[2]))
 
@@ -95,7 +93,6 @@ class EnvRFPoller(threading.Thread):
 
 			except serial.SerialException:
 				logging.error("SerialException raised")
-			logging.debug("End EnvRFPoller cycle")
 
 
 		self.ser.close()

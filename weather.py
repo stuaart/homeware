@@ -52,7 +52,7 @@ class WeatherManager(threading.Thread):
 
 				latest_ = obj['SiteRep']['DV']['Location']['Period']
 				latest = latest_[len(latest_)-1]['Rep']
-			except URLError:
+			except urllib2.URLError:
 				logging.error("Error opening URL " + self.datapointURL)
 
 			if latest != None:

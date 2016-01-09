@@ -9,7 +9,7 @@ import db
 import screen
 import weather
 
-logging.basicConfig(filename="error.log", level=logging.WARN)
+logging.basicConfig(filename="error.log", level=logging.INFO)
 logger = logging.getLogger()
 hdlr = logging.FileHandler('error.log')
 formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
