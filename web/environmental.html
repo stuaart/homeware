@@ -122,7 +122,7 @@ $(function () {
 				zoomType: 'x'
 			},
 			title: {
-				text: 'Environmental sensor data (last 7 days)'
+				text: 'Sensor data (last 7 days)'
 			},
 			xAxis: [{
 				type: 'datetime',
@@ -149,7 +149,7 @@ $(function () {
 			},
 			{
 				title: {
-					text: 'PIR score'
+					text: 'Movement (PIR triggers)'
 				},
 				type: 'logarithmic',
                 max: 9999,
@@ -157,7 +157,7 @@ $(function () {
 			},
 			{
 				title: {
-					text: 'Relative humidity'
+					text: 'Rel. humidity'
 				},
 				labels: {
 					format: '{value}%'
@@ -166,7 +166,7 @@ $(function () {
 				min: 0
 			}],
 			series: [{
-				name: 'Temperature (1W)',
+				name: 'Temp. (of RPi)',
 				data: env_data_temp1w,
 				type: 'spline',
 				visible: false,
@@ -175,17 +175,9 @@ $(function () {
 				},
 				yAxis: 0
 			},
+			
 			{
-				name: 'Temperature (BMP085)',
-				data: env_data_bmp085_temp,
-				type: 'spline',
-				tooltip: {
-					valueSuffix: '°C'
-				},
-				yAxis: 0
-			},	
-			{
-				name: 'Temperature (DHT22)',
+				name: 'Temp (inside piano)',
 				data: env_data_dht22_temp,
 				type: 'spline',
 				tooltip: {
@@ -194,7 +186,7 @@ $(function () {
 				yAxis: 0
 			},	
 			{
-				name: 'Relative humidity (DHT22)',
+				name: 'Rel. humidity (in piano)',
 				data: env_data_dht22_hum,
 				type: 'spline',
 				tooltip: {
@@ -203,7 +195,7 @@ $(function () {
 				yAxis: 3
 			},	
 			{
-				name: 'Temperature (observation)',
+				name: 'Temp. (Met Office)',
 				data: w_data_obs_temp,
 				type: 'spline',
 				tooltip: {
@@ -212,7 +204,7 @@ $(function () {
 				yAxis: 0
 			},	
 			{
-				name: 'Relative humidity (observation)',
+				name: 'Rel. humidity (Met Office)',
 				data: w_data_obs_hum,
 				type: 'spline',
 				tooltip: {
@@ -220,9 +212,17 @@ $(function () {
 				},
 				yAxis: 3
 			},	
-
 			{
-				name: 'Pressure',
+				name: 'Temp. (kitchen)',
+				data: env_data_bmp085_temp,
+				type: 'spline',
+				tooltip: {
+					valueSuffix: '°C'
+				},
+				yAxis: 0
+			},	
+			{
+				name: 'Pressure (kitchen)',
 				data: env_data_bmp085_pres,
 				yAxis: 1,
 				type: 'spline',
@@ -231,7 +231,7 @@ $(function () {
 				},
 			},
 			{
-				name: 'PIR score',
+				name: 'Movement (kitchen)',
 				data: pir_data,
 				yAxis: 2,
 				type: 'column',
