@@ -7,13 +7,11 @@ import screen
 
 class DBManager(threading.Thread):
 
-	DAYS = 7
-
 	tId = -1
 	wait = 1
-	con = None
 	screen = None
-	dbfile = "data/homeware-data.db"
+	datadir = "/home/pi/homeware/data/"
+	dbfile = datadir + "homeware-data.db"
 
 	killEvent = None
 
@@ -28,19 +26,12 @@ class DBManager(threading.Thread):
 
 		self.tId = tId
 		self.wait = wait
-		self.dbfile = "data/homeware-data-" + str(self.DAYS) + "-days.db"
 		self.screen = screen
+
 
 	def run(self):
 	
-		if self.con is None:
-			self.con = sqlite3.connect(self.dbfile, detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES)
-
 		self.setup()
-
-		self.con.commit()
-		self.con.close()
-		self.con = None
 
 		while not self.killEvent.is_set():
 			if self.qq.qsize() > 0:
@@ -52,8 +43,7 @@ class DBManager(threading.Thread):
 
 				logging.debug(msg)
 
-			if self.con is None:
-				self.con = sqlite3.connect(self.dbfile, detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES)
+			con = sqlite3.connect(self.dbfile, detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES)
 
 
 			while not self.killEvent.is_set() and not self.qq.empty():
@@ -61,11 +51,11 @@ class DBManager(threading.Thread):
 				try:
 					qt = self.qq.get()
 					rowc = 0
-					with self.con:
+					with con:
 						if len(qt) == 1:
-							rowc += self.con.execute(qt[0]).rowcount
+							rowc += con.execute(qt[0]).rowcount
 						else:
-							rowc += self.con.execute(qt[0], qt[1]).rowcount
+							rowc += con.execute(qt[0], qt[1]).rowcount
 	
 					if rowc > 0:
 						msg = "Rows affected: " + str(rowc)
@@ -80,11 +70,11 @@ class DBManager(threading.Thread):
 					err = "Error: query = %s" % (qt,)
 					logging.error(err)
 
+			con.commit()
+			con.close()
+			
 			self.killEvent.wait(self.wait)
 			
-			self.con.commit()
-			self.con.close()
-			self.con = None
 
 	def setup(self):
 		self.qq.put(("create table pir_data(time timestamp, score real, period real)",))
@@ -92,6 +82,13 @@ class DBManager(threading.Thread):
 		self.qq.put(("create table env_data_bmp085(time timestamp, temp real, pres real)",))
 		self.qq.put(("create table env_data_dht22(time timestamp, temp real, hum real)",))
 		self.qq.put(("create table w_data_obs(time timestamp, temp real, hum real)",))
+
+		self.qq.put(("create table pir_data_latest(time timestamp, score real, period real)",))
+		self.qq.put(("create table env_data_temp1w_latest(time timestamp, temp real)",))
+		self.qq.put(("create table env_data_bmp085_latest(time timestamp, temp real, pres real)",))
+		self.qq.put(("create table env_data_dht22_latest(time timestamp, temp real, hum real)",))
+		self.qq.put(("create table w_data_obs_latest(time timestamp, temp real, hum real)",))
+
 
 	def insertEnvData(self, envData):
 		if envData.getTemp1W()['time'] != None:
@@ -108,6 +105,43 @@ class DBManager(threading.Thread):
 	def insertPIRData(self, pirData):
 		self.qq.put(("insert into pir_data(time, score, period) values (?, ?, ?)", (pirData.getCurrScore()['start'], pirData.getCurrScore()['score'], pirData.getAccumPeriod())))
 
+	
+	def writeStateNow(self, pirData=None, envData=None, wData=None):
+		
+		con = sqlite3.connect(self.dbfile, detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES)
+
+		with con:
+			if envData != None:
+				if envData.getTemp1W()['time'] != None:
+					con.execute("delete from env_data_temp1w_latest")
+					con.execute("insert into env_data_temp1w_latest(time, temp) values (?, ?)", (envData.getTemp1W()['time'], envData.getTemp1W()['temp']))
+		
+				if envData.getBMP085()['time'] != None:
+					con.execute("delete from env_data_bmp085_latest")
+					con.execute("insert into env_data_bmp085_latest(time, temp, pres) values (?, ?, ?)", (envData.getBMP085()['time'], envData.getBMP085()['temp'], envData.getBMP085()['pres']))
+
+				if envData.getDHT22()['time'] != None and envData.getDHT22()['temp'] != None and envData.getDHT22()['hum'] != None:
+					con.execute("delete from env_data_dht22_latest")
+					con.execute("insert into env_data_dht22_latest(time, temp, hum) values (?, ?, ?)", (envData.getDHT22()['time'], envData.getDHT22()['temp'], envData.getDHT22()['hum']))
+
+			if pirData != None and pirData.getCurrScore()['start'] != None:
+					con.execute("delete from pir_data_latest")
+					con.execute("insert into pir_data_latest(time, score, period) values (?, ?, ?)", (pirData.getCurrScore()['start'], pirData.getCurrScore()['score'], pirData.getAccumPeriod()))
+
+			if wData != None and wData.getWData()['time'] != None:
+				con.execute("delete from w_data_obs_latest")
+				con.execute("insert into w_data_obs_latest(time, temp, hum) values (?, ?, ?)", (wData.getWData()['time'], wData.getWData()['temp'], wData.getWData()['hum']))
+
+		con.commit()
+		con.close()
+
+
+	def insertWData(self, wData):
+		if wData.getWData()['time'] != None:
+			self.qq.put(("insert into w_data_obs(time, temp, hum) values (?, ?, ?)", (wData.getWData()['time'], wData.getWData()['temp'], wData.getWData()['hum'])))
+
+	def insertPIRData(self, pirData):
+		self.qq.put(("insert into pir_data(time, score, period) values (?, ?, ?)", (pirData.getCurrScore()['start'], pirData.getCurrScore()['score'], pirData.getAccumPeriod())))
 
 	def purge(self): 
 		d = datetime.datetime.now() - datetime.timedelta(days=DAYS)

@@ -1,4 +1,4 @@
-import datetime
+import datetime, logging
 
 class PIRData:
 
@@ -24,6 +24,8 @@ class PIRData:
 				self.currScore['score'] += 1
 		else:
 			dbManager.insertPIRData(self)
+			dbManager.writeStateNow(pirData=self)
+			logging.debug("writeStateNow(pirData) called from PIRData")
 			self.currScore['start'] = t
 			self.currScore['end'] = t + datetime.timedelta(minutes=self.accumPeriod)
 			self.currScore['score'] = 0

@@ -70,6 +70,8 @@ class WeatherManager(threading.Thread):
 	
 					if self.dbManager is not None and newWData:
 						self.dbManager.insertWData(self.wData)
+						self.dbManager.writeStateNow(wData=self.wData)
+						logging.debug("writeStateNow(wData) called from WeatherManager")
 
 				except KeyError:
 					logging.error("[" + str(datetime.datetime.now()) + "] Problem with weather data, KeyError: " + str(latest))

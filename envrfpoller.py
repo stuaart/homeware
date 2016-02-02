@@ -17,7 +17,7 @@ TOKENS = { "HUM_TOKEN" : "HUM", "TEMP_TOKEN" : "TMP", "VCC_TOKEN" : "VCC" }
 
 class EnvRFPoller(threading.Thread):
 
-
+	dbManager = None
 	killEvent = None
 	
 	screen = None
@@ -26,9 +26,10 @@ class EnvRFPoller(threading.Thread):
 
 	envData = None
 
-	def __init__(self, killEvent, envData, screen=None):
+	def __init__(self, killEvent, envData, dbManager=None, screen=None):
 		super(EnvRFPoller, self).__init__()
 
+		self.dbManager = dbManager
 		self.killEvent = killEvent
 		self.envData = envData
 
@@ -89,7 +90,9 @@ class EnvRFPoller(threading.Thread):
 						line.append(c)
 
 					c_ = True
-
+				if self.dbManager != None:
+					self.dbManager.writeStateNow(envData=self.envData)
+					logging.debug("writeStateNow(envData) called from EnvRFPoller")
 
 			except serial.SerialException:
 				logging.error("SerialException raised")

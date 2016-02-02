@@ -72,7 +72,7 @@ class SensorsManager(threading.Thread):
 		self.bmpDev = BMP085.BMP085()
 
 		# Frequency at which this polls *must* be < the frequency of data being sent 
-		self.envRFPoller = envrfpoller.EnvRFPoller(killEvent, self.envData, screen)
+		self.envRFPoller = envrfpoller.EnvRFPoller(killEvent, self.envData, dbManager, screen)
 		self.envRFPoller.start()
 
 
@@ -84,40 +84,42 @@ class SensorsManager(threading.Thread):
 		return self.pirData
 
 
-	def run(s):
+	def run(self):
 
-		logging.info("SensorsManager running [tid=" + str(s.tId) + "]")
+		logging.info("SensorsManager running [tid=" + str(self.tId) + "]")
 
 
-		while not s.killEvent.is_set():
+		while not self.killEvent.is_set():
 
-			if s.pirPoll:
-				s.pirCallback(s.pins['pir'])
+			if self.pirPoll:
+				self.pirCallback(self.pins['pir'])
 
-			temp1w = s.read1w()[0]
+			temp1w = self.read1w()[0]
 
-			if s.cmaTherms[0] == 0:
-				s.cmaTherms[1] = temp1w
-				s.cmaTherms[0] = 1
+			if self.cmaTherms[0] == 0:
+				self.cmaTherms[1] = temp1w
+				self.cmaTherms[0] = 1
 			else:
-				cmaTherms_ = (temp1w + s.cmaTherms[0] * s.cmaTherms[1]) / (s.cmaTherms[0] + 1)
-				s.cmaTherms[0] += 1
-				s.cmaTherms[1] = cmaTherms_
+				cmaTherms_ = (temp1w + self.cmaTherms[0] * self.cmaTherms[1]) / (self.cmaTherms[0] + 1)
+				self.cmaTherms[0] += 1
+				self.cmaTherms[1] = cmaTherms_
 
-			s.envData.setTemp1W(temp1w, datetime.datetime.now())
-			s.envData.setBMP085(s.bmpDev.read_temperature(), 
-							    s.bmpDev.read_pressure(),
-							    datetime.datetime.now())
+			self.envData.setTemp1W(temp1w, datetime.datetime.now())
+			self.envData.setBMP085(self.bmpDev.read_temperature(), 
+							       self.bmpDev.read_pressure(),
+							       datetime.datetime.now())
+
+			self.dbManager.writeStateNow(envData=self.envData)
+			logging.debug("writeStateNow(envData) called from SensorsManager")
 
 
+			if self.screen is not None:
+				self.screen.updateEntry(envData=self.envData)
 
-			if s.screen is not None:
-				s.screen.updateEntry(envData=s.envData)
+			if self.dbManager is not None:
+				self.dbManager.insertEnvData(self.envData)
 
-			if s.dbManager is not None:
-				s.dbManager.insertEnvData(s.envData)
-
-			s.killEvent.wait(s.wait)
+			self.killEvent.wait(self.wait)
 
 
 
