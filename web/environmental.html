@@ -272,14 +272,45 @@ CSV:
 <ul><li><a href="env_data_bmp085.csv">env_data_bmp085.csv</a>
 <li><a href="env_data_pir.csv">env_data_pir.csv</a>
 <li><a href="env_data_temp1w.csv">env_data_temp1w.csv</a>
+<li><a href="env_data_dht22.csv">env_data_dht22.csv</a>
 </ul>
 </div>
 
+<script type="text/javascript" src="http://momentjs.com/downloads/moment.js"></script>
+
+
+<script type="text/javascript">
+$(function () {
+
+
+	$.getJSON("latest-state.json", 
+		function(data)
+		{
+			var elem = document.getElementById("wData-temp");
+			elem.innerHTML = data.w_data_obs.w_data_obs_temp[0] + "&deg;C " + moment(data.w_data_obs.w_data_obs_temp[1]).fromNow();
+
+			var elem = document.getElementById("wData-hum");
+			elem.innerHTML = data.w_data_obs.w_data_obs_hum[0] + "% " + moment(data.w_data_obs.w_data_obs_hum[1]).fromNow();
+
+		}
+	);
+});
+</script>
+
 <div>
 LATEST:
-<ul><li>Motion
-<li>Temperature
-<li>Pressure
+<ul><li>Motion (kitchen)</li>
+<li>Temperature (kitchen)</li>
+<li>Pressure (kitchen)</li>
+<li>Temperature (RPi)</li>
+</ul>
+<ul>
+<li>Temperature (piano)</li>
+<li>Relative humidity (piano)</li>
+</ul>
+<ul>
+<li>Temperature (Met Office): <span id="wData-temp"></span></li>
+<li>Relative humidity (Met Office): <span id="wData-hum"></span></li>
 </ul>
 </div>
 
