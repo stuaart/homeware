@@ -2,7 +2,7 @@
 
 import sqlite3, csv, datetime
 
-DAYS = 28 # How many days to pull from db
+DAYS = 90 # How many days to pull from db
 
 datadir = "/home/pi/homeware/data/"
 dbfile = datadir + "homeware-data.db"

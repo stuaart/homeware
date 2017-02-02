@@ -1,5 +1,7 @@
 import datetime, logging
 
+import envrfpoller
+
 class PIRData:
 
 	prevState = None
@@ -43,16 +45,31 @@ class PIRData:
 		return self.accumPeriod
 
 
-class EnvData:
+class EnergyData:
+
+	# Gas and electricity readings / counts
+	gas = None
+	elec = None
+
+	def __init__(self):
+		elec = None
+
+
+
+class EnvData: # For capturing environmental data e.g., temp, humidity, etc.
 
 	temp1W = None
 	bmp085 = None
-	dht22 = None
+	dht22 = None # My own custom built temp / rhum sensor
+	wt = None 	 # WirelessThings temp / rhum sensors
 	
 	def __init__(self):
 		self.temp1W = {'temp' : None, 'time' : None}
 		self.bmp085 = {'temp' : None, 'pres' : None, 'time' : None}
 		self.dht22 = {'temp' : None, 'hum' : None, 'time' : None}
+		self.wt = {}
+		for t in envrfpoller.WT_IDS:
+			self.wt[t] = {'temp' : None, 'hum' : None, 'time' : None}
 
 	def setTemp1W(self, temp, time):
 		self.temp1W['temp'] = temp
@@ -76,6 +93,14 @@ class EnvData:
 		self.dht22['hum'] = hum
 		self.dht22['time'] = time
 
+	def setWTTemp(self, _id, temp, time):
+		self.wt[_id]['temp'] = temp
+		self.wt[_id]['time'] = time
+
+	def setWTHum(self, _id, hum, time):
+		self.wt[_id]['hum'] = hum
+		self.wt[_id]['time'] = time
+
 	def getTemp1W(self):
 		return self.temp1W
 #		return (self.temp1W['temp'], self.temp1W['time'])
@@ -87,3 +112,5 @@ class EnvData:
 	def getDHT22(self):
 		return self.dht22
 
+	def getWT(self):
+		return self.wt
