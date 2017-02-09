@@ -40,14 +40,12 @@ env_data = {'env_data' :
 
 with sqlite3.connect(dbfile, detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES) as con:
 	res = con.execute("select distinct id from env_data_wt")
+	env_data_wt = {}
 	for row in res:
-		env_data_wt = {str(row[0]) : 
-						{'env_data_wt_temp' : get("env_data_wt", 0, 2),
-					     'env_data_wt_hum' : get("env_data_wt", 0, 3)
-						}
-					  }
-
-
+		print row[0]
+		env_data_wt[str(row[0])] = {
+				 'env_data_wt_temp' : get("env_data_wt", 0, 2, row[0]),
+			     'env_data_wt_hum' : get("env_data_wt", 0, 3, row[0])}
 
 w_data_obs = {'w_data_obs' :
 				{'w_data_obs_temp' : get("w_data_obs", 0, 1),
