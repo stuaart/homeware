@@ -22,6 +22,12 @@ $(function () {
 	w_data_obs_temp = [];
 	w_data_obs_hum = [];
 
+	// Below must be specified already
+	env_data_wt_loft_temp = [];
+	env_data_wt_loft_hum = [];
+	env_data_wt_garage_temp = [];
+	env_data_wt_garage_hum = [];
+
 	$.getJSON("pir_data.json", 
 		function(data)
 		{
@@ -56,6 +62,43 @@ $(function () {
 			}
 	
 		});
+
+	$.getJSON("env_data_wt.json",
+		function(data_)
+		{
+			for (sensor in data_)
+			{
+				_temp = [];
+				_hum = [];
+
+				for (i in data_[sensor].env_data_wt_temp)
+				{
+					_temp.push(
+						[new Date(data_[sensor].env_data_wt_temp[i][2]).getTime(),
+							parseFloat(data_[sensor].env_data_wt_temp[i][1])]
+					);
+				}
+					
+				for (i in data_[sensor].env_data_wt_hum)
+				{
+					_hum.push(
+						[new Date(data_[sensor].env_data_wt_hum[i][2]).getTime(),
+							parseFloat(data_[sensor].env_data_wt_hum[i][1])]
+					);
+				}
+				if (sensor.toString() == "LOFT")
+				{
+					env_data_wt_loft_temp = _temp;
+					env_data_wt_loft_hum = _hum;
+				}
+				else if (sensor.toString() == "GARAGE")
+				{	
+					env_data_wt_garage_temp = _temp;
+					env_data_wt_garage_hum = _hum;
+				}
+			}
+		});
+
 
 	$.getJSON("env_data.json", 
 		function(data_)
@@ -166,7 +209,7 @@ $(function () {
 				min: 0
 			}],
 			series: [{
-				name: 'Temp. (of RPi)',
+				name: 'RPi temp.',
 				data: env_data_temp1w,
 				type: 'spline',
 				visible: false,
@@ -177,7 +220,7 @@ $(function () {
 			},
 			
 			{
-				name: 'Temp (inside piano)',
+				name: 'PIANO temp.',
 				data: env_data_dht22_temp,
 				type: 'spline',
 				tooltip: {
@@ -186,7 +229,7 @@ $(function () {
 				yAxis: 0
 			},	
 			{
-				name: 'Rel. humidity (in piano)',
+				name: 'PIANO rel. humidity',
 				data: env_data_dht22_hum,
 				type: 'spline',
 				tooltip: {
@@ -194,6 +237,45 @@ $(function () {
 				},
 				yAxis: 3
 			},	
+
+			{
+				name: 'GARAGE temp.',
+				data: env_data_wt_garage_temp,
+				type: 'spline',
+				tooltip: {
+					valueSuffix: '°C'
+				},
+				yAxis: 0
+			},	
+			{
+				name: 'GARAGE rel. humidity',
+				data: env_data_wt_garage_hum,
+				type: 'spline',
+				tooltip: {
+					valueSuffix: '%'
+				},
+				yAxis: 3
+			},	
+	
+			{
+				name: 'LOFT temp.',
+				data: env_data_wt_loft_temp,
+				type: 'spline',
+				tooltip: {
+					valueSuffix: '°C'
+				},
+				yAxis: 0
+			},	
+			{
+				name: 'LOFT rel. humidity',
+				data: env_data_wt_loft_hum,
+				type: 'spline',
+				tooltip: {
+					valueSuffix: '%'
+				},
+				yAxis: 3
+			},	
+	
 			{
 				name: 'Temp. (Met Office)',
 				data: w_data_obs_temp,
@@ -213,7 +295,7 @@ $(function () {
 				yAxis: 3
 			},	
 			{
-				name: 'Temp. (kitchen)',
+				name: 'KITCHEN temp.',
 				data: env_data_bmp085_temp,
 				type: 'spline',
 				tooltip: {
@@ -222,7 +304,7 @@ $(function () {
 				yAxis: 0
 			},	
 			{
-				name: 'Pressure (kitchen)',
+				name: 'KITCHEN pressure',
 				data: env_data_bmp085_pres,
 				yAxis: 1,
 				type: 'spline',
@@ -231,7 +313,7 @@ $(function () {
 				},
 			},
 			{
-				name: 'Movement (kitchen)',
+				name: 'Movement in KITCHEN',
 				data: pir_data,
 				yAxis: 2,
 				type: 'column',
@@ -267,14 +349,6 @@ $(function () {
 
 <div id="container" style="min-width: 310px; height: 400px; margin: 0 auto"></div>
 
-<div> 
-CSV:
-<ul><li><a href="env_data_bmp085.csv">env_data_bmp085.csv</a>
-<li><a href="env_data_pir.csv">env_data_pir.csv</a>
-<li><a href="env_data_temp1w.csv">env_data_temp1w.csv</a>
-<li><a href="env_data_dht22.csv">env_data_dht22.csv</a>
-</ul>
-</div>
 
 <script type="text/javascript" src="http://momentjs.com/downloads/moment.js"></script>
 
@@ -286,11 +360,36 @@ $(function () {
 	$.getJSON("latest-state.json", 
 		function(data)
 		{
-			var elem = document.getElementById("wData-temp");
-			elem.innerHTML = data.w_data_obs.w_data_obs_temp[0] + "&deg;C " + moment(data.w_data_obs.w_data_obs_temp[1]).fromNow();
+		
+			var elem = document.getElementById("pir");
+			if (data.pir_data[0] > 0)
+				elem.innerHTML = "Movement last seen " + moment(data.pir_data[1]).fromNow();
+			else
+				elem.innerHTML = "";
+			
+			var elem = document.getElementById("bmp085-temp");
+			var d = data.env_data;
+			elem.innerHTML = d.env_data_bmp085_temp[0] + "&deg;C, " + moment(d.env_data_bmp085_temp[1]).fromNow();
 
-			var elem = document.getElementById("wData-hum");
-			elem.innerHTML = data.w_data_obs.w_data_obs_hum[0] + "% " + moment(data.w_data_obs.w_data_obs_hum[1]).fromNow();
+			var elem = document.getElementById("bmp085-pres");
+			elem.innerHTML = d.env_data_bmp085_pres[0] + " mb, " + moment(d.env_data_bmp085_pres[1]).fromNow();
+			
+			var elem = document.getElementById("1w-temp");
+			elem.innerHTML = d.env_data_temp1w[0] + "&deg;C, " + moment(d.env_data_temp1w[1]).fromNow();
+			
+			
+			var elem = document.getElementById("dht22-temp");
+			elem.innerHTML = d.env_data_dht22_temp[0] + "&deg;C, " + moment(d.env_data_dht22_temp[1]).fromNow();
+
+			var elem = document.getElementById("dht22-hum");
+			elem.innerHTML = d.env_data_dht22_hum[0] + "%, " + moment(d.env_data_dht22_hum[1]).fromNow();
+			
+			var elem = document.getElementById("w-temp");
+			var d = data.w_data_obs;
+			elem.innerHTML = d.w_data_obs_temp[0] + "&deg;C, " + moment(d.w_data_obs_temp[1]).fromNow();
+
+			var elem = document.getElementById("w-hum");
+			elem.innerHTML = d.w_data_obs_hum[0] + "%, " + moment(d.w_data_obs_hum[1]).fromNow();
 
 		}
 	);
@@ -299,20 +398,31 @@ $(function () {
 
 <div>
 LATEST:
-<ul><li>Motion (kitchen)</li>
-<li>Temperature (kitchen)</li>
-<li>Pressure (kitchen)</li>
-<li>Temperature (RPi)</li>
+<ul><li>Motion (kitchen): <span id="pir"></span></li>
+<li>Temperature (kitchen): <span id="bmp085-temp"></span></li>
+<li>Pressure (kitchen): <span id="bmp085-pres"></span></li>
+<li>Temperature (RPi): <span id="1w-temp"></span></li>
 </ul>
 <ul>
-<li>Temperature (piano)</li>
-<li>Relative humidity (piano)</li>
+<li>Temperature (piano): <span id="dht22-temp"></span></li>
+<li>Relative humidity (piano): <span id="dht22-hum"></span></li>
 </ul>
 <ul>
-<li>Temperature (Met Office): <span id="wData-temp"></span></li>
-<li>Relative humidity (Met Office): <span id="wData-hum"></span></li>
+<li>Temperature (Met Office): <span id="w-temp"></span></li>
+<li>Relative humidity (Met Office): <span id="w-hum"></span></li>
 </ul>
 </div>
+
+<div> 
+CSV:
+<ul><li><a href="env_data_bmp085.csv">env_data_bmp085.csv</a>
+<li><a href="env_data_pir.csv">env_data_pir.csv</a>
+<li><a href="env_data_temp1w.csv">env_data_temp1w.csv</a>
+<li><a href="env_data_dht22.csv">env_data_dht22.csv</a>
+</ul>
+</div>
+
+
 
 	</body>
 </html>
