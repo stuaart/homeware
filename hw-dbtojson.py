@@ -5,7 +5,7 @@ import json
 
 DAYS = 7 # How many days to pull from db
 
-datadir = "/home/pi/homeware/data"
+datadir = "./data"
 dbfile = datadir + "/homeware-data.db"
 
 d = datetime.datetime.now() - datetime.timedelta(days=DAYS)

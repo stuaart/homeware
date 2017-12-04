@@ -4,7 +4,7 @@ import sqlite3, csv, datetime
 
 DAYS = 90 # How many days to pull from db
 
-datadir = "/home/pi/homeware/data/"
+datadir = "./data/"
 dbfile = datadir + "homeware-data.db"
 
 d = datetime.datetime.now() - datetime.timedelta(days=DAYS)

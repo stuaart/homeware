@@ -1,8 +1,8 @@
 #!/bin/bash
 
-HOMEWARE=/home/pi/homeware/
+HOMEWARE=./
 python $HOMEWARE/hw-dbtojson.py
 python $HOMEWARE/hw-dbtocsv.py
 
-scp $HOMEWARE/data/*.{json,csv} stuart@zubin.tropic.org.uk:~/public_html/homeware/
+scp $HOMEWARE/data/*.{json,csv,db} stuart@zubin.tropic.org.uk:~/public_html/homeware/
 

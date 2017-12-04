@@ -1,0 +1,4 @@
+python-rpi.gpio
+python-serial
+Adafruit_BMP.BMP085
+Adafruit_Python_PureIO

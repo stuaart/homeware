@@ -10,7 +10,7 @@ class DBManager(threading.Thread):
 	tId = -1
 	wait = 1
 	screen = None
-	datadir = "/home/pi/homeware/data/"
+	datadir = "./data/"
 	dbfile = datadir + "homeware-data.db"
 
 	killEvent = None

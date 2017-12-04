@@ -68,7 +68,7 @@ class SensorsManager(threading.Thread):
 				self.screen.updateStatus("Error accessing 1w thermometer", 1)
 			else:
 				print "Error accessing 1w thermometer"
-
+		
 		self.bmpDev = BMP085.BMP085()
 
 		# Frequency at which this polls *must* be < the frequency of data being sent 
@@ -93,8 +93,10 @@ class SensorsManager(threading.Thread):
 
 			if self.pirPoll:
 				self.pirCallback(self.pins['pir'])
-
-			temp1w = self.read1w()[0]
+		
+			temp1w = None	
+			if self.read1w() != None:	
+				temp1w = self.read1w()[0]
 
 			if self.cmaTherms[0] == 0:
 				self.cmaTherms[1] = temp1w
@@ -104,7 +106,10 @@ class SensorsManager(threading.Thread):
 				self.cmaTherms[0] += 1
 				self.cmaTherms[1] = cmaTherms_
 
-			self.envData.setTemp1W(temp1w, datetime.datetime.now())
+			if temp1w != None:
+				self.envData.setTemp1W(temp1w, datetime.datetime.now())
+			else:
+				logging.error("temp1w is None")
 			self.envData.setBMP085(self.bmpDev.read_temperature(), 
 							       self.bmpDev.read_pressure(),
 							       datetime.datetime.now())
@@ -124,14 +129,20 @@ class SensorsManager(threading.Thread):
 
 
 	def read1wRaw(self):
-		f = open(self.therm1wDev, 'r')
-		lines = f.readlines()
-		f.close()
-		return lines
+		try:
+			f = open(self.therm1wDev, 'r')
+			lines = f.readlines()
+			f.close()
+			return lines
+		except TypeError:
+			logging.error("read1wRaw() is not finding 1w temp sensor; try putting dtoverlay=w1-gpio in /boot/config.txt")
+			return None
 
 
 	def read1w(self):
 		lines = self.read1wRaw()
+		if lines == None:
+			return None
 		while lines[0].strip()[-3:] != 'YES':
 			time.sleep(0.2)
 			lines = self.read1wRaw()
